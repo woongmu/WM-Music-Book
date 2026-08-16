@@ -65,7 +65,7 @@
   .admin-section h5 { margin: 0 0 8px 0; color: #555; }
   
   .form-group { display: flex; flex-direction: column; gap: 8px; }
-  .form-row { display: flex; gap: 8px; align-items: center; }
+  .form-row { display: flex; gap: 10px; align-items: center; } /* 간격 살짝 넓힘 */
   .color-row { display: flex; gap: 15px; font-size: 0.9em; color: #555; margin-bottom: 5px; }
   .color-row label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
   input[type="color"] { width: 35px; height: 35px; padding: 0; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
@@ -91,37 +91,53 @@
   .toggle-btn.on { background: var(--primary); color: white; border-color: var(--primary); }
 
   .controls { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
-  input[type="text"].search { width: 100%; font-size: 1em; }
   
-  /* ★ 정렬 드롭다운 전용 UI 스타일 추가 ★ */
+  /* ★ 검색창 스타일 개선 (둥근 모서리와 패딩) ★ */
+  input[type="text"].search { 
+    width: 100%; 
+    font-size: 0.95em; 
+    border-radius: 10px; 
+    padding: 10px 14px;
+    transition: all 0.2s;
+  }
+  input[type="text"].search:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 133, 162, 0.1);
+  }
+
+  /* ★ 드롭다운 정렬 박스 커스텀 디자인 ★ */
   .sort-select {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    /* 기본 화살표 대신 핑크색 귀여운 꺾쇠 아이콘 삽입 */
-    background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ff85a2' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 10px center;
-    padding: 8px 30px 8px 12px;
-    font-size: 0.85em;
+    background-color: white;
+    /* 커스텀 화살표 아이콘 (SVG) 삽입 */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding: 10px 34px 10px 14px;
+    font-size: 0.9em;
+    font-family: inherit;
     font-weight: 600;
     color: #555;
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
     outline: none;
     transition: all 0.2s ease;
-    font-family: inherit;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    white-space: nowrap;
+    width: auto;
   }
-  .sort-select:hover {
+  .sort-select:hover, .sort-select:focus {
     border-color: var(--primary);
-    box-shadow: 0 4px 10px rgba(255, 133, 162, 0.1);
-  }
-  .sort-select:focus {
-    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(255, 133, 162, 0.1);
   }
 
   .genres { display: flex; gap: 8px; flex-wrap: wrap; }
-  .badge { background: #f4f4f4; color: #555; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: 500; }
+  .badge { background: #f4f4f4; color: #555; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: 500; transition: 0.2s; }
+  .badge:hover { background: #eaeaea; }
   .badge.active { background: var(--primary); color: white; }
   
   .song-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; }
@@ -150,9 +166,9 @@
   .right-side { display: flex; align-items: center; gap: 6px; }
   .song-genre { font-size: 0.8em; background: var(--bg); color: var(--primary); padding: 4px 10px; border-radius: 12px; margin-right: 5px; border: 1px solid rgba(0,0,0,0.05); }
   
-  .btn-small { background: white; border: 1px solid var(--border); color: #555; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: 600; }
+  .btn-small { background: white; border: 1px solid var(--border); color: #555; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: 600; transition: 0.2s;}
   .btn-lyrics { border-color: var(--primary); color: var(--primary); }
-  .btn-small:hover { background: #f9f9f9; }
+  .btn-small:hover { background: #fdf2f4; }
   .icon-btn { background: none; border: none; cursor: pointer; font-size: 1.1em; padding: 4px; }
   .icon-btn:hover { transform: scale(1.1); }
 
@@ -366,11 +382,10 @@
   </div>
 
   <div id="tab_songbook" class="tab-content active">
-    <!-- ★ 검색 및 정렬 컨트롤 영역 ★ -->
+    <!-- ★ 검색 및 정렬 컨트롤 영역 (클래스 기반 스타일 적용) ★ -->
     <div class="controls">
       <div class="form-row">
-        <input type="text" id="searchInput" class="search" placeholder="⌕ 곡명 또는 가수 검색..." style="flex: 1;">
-        <!-- ★ 새롭게 디자인된 드롭다운 클래스 적용 ★ -->
+        <input type="text" id="searchInput" class="search" placeholder="⌕ 곡명 또는 가수 검색...">
         <select id="sortSelect" class="sort-select">
           <option value="default">최신순</option>
           <option value="title">곡명순</option>
@@ -484,7 +499,6 @@ const firebaseConfig = {
   messagingSenderId: "545753276095",
   appId: "1:545753276095:web:22d3fb181e3701bef3300a"
 };
-
   
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
@@ -525,7 +539,7 @@ const firebaseConfig = {
   let currentUseLinks = pageInfo.useLinks;
   let currentViewWeekIndex = 0; 
   let currentGenre = "all";
-  let currentSort = "default"; // ★ 정렬 상태 변수
+  let currentSort = "default"; 
   let isInitialLoad = true;
   let isAdminAuthenticated = false;
 
@@ -958,7 +972,6 @@ const firebaseConfig = {
     });
   }
 
-  // ★ 정렬을 위한 텍스트 그룹 판별 함수 (1:한글, 2:영어, 3:숫자, 4:특수문자)
   function getSortGroup(char) {
     if (!char) return 5;
     if (/[가-힣ㄱ-ㅎㅏ-ㅣ]/.test(char)) return 1;
@@ -967,7 +980,6 @@ const firebaseConfig = {
     return 4;
   }
 
-  // ★ 커스텀 문자열 정렬 함수 (한글 -> 영어 -> 특수기호 순)
   function customStringCompare(str1, str2) {
     str1 = (str1 || "").replace(/\s+/g, '').toLowerCase();
     str2 = (str2 || "").replace(/\s+/g, '').toLowerCase();
@@ -1000,13 +1012,11 @@ const firebaseConfig = {
       return matchGenre && matchSearch;
     });
 
-    // ★ 선택된 정렬 방식에 따라 목록 정렬하기 ★
     if (currentSort === "title") {
       filteredSongs.sort((a, b) => customStringCompare(a.title, b.title));
     } else if (currentSort === "artist") {
       filteredSongs.sort((a, b) => customStringCompare(a.artist, b.artist));
     } else {
-      // 기본값(등록순)
       filteredSongs.sort((a, b) => b.id - a.id);
     }
 
@@ -1203,7 +1213,6 @@ const firebaseConfig = {
 
   document.getElementById("searchInput").addEventListener("input", renderSongs);
 
-  // ★ 정렬 선택 박스 변경 이벤트 추가
   document.getElementById("sortSelect").addEventListener("change", (e) => {
     currentSort = e.target.value;
     renderSongs();
