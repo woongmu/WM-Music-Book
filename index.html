@@ -100,22 +100,17 @@
   .song-header h3 { margin: 0; }
   .song-list { list-style: none; padding: 0; margin: 0; }
   
-  /* ★ 노래 목록 아이템 클릭 이펙트 추가 ★ */
   .song-item { 
     padding: 15px; 
     border-bottom: 1px solid #f0f0f0; 
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
-    cursor: pointer; /* 클릭 가능한 커서로 변경 */
+    cursor: pointer;
     transition: background-color 0.2s ease, transform 0.1s ease;
   }
-  .song-item:hover {
-    background-color: #fafafa;
-  }
-  .song-item:active {
-    background-color: #f0f0f0;
-  }
+  .song-item:hover { background-color: #fafafa; }
+  .song-item:active { background-color: #f0f0f0; }
 
   .song-info-wrapper { display: flex; align-items: center; gap: 12px; }
   .album-art { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: #eee; flex-shrink: 0; border: 1px solid #ddd; }
@@ -176,7 +171,6 @@
 
   #loadingScreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; color: var(--primary); font-weight: bold; font-size: 1.2em; }
 
-  /* ★ 토스트 알림창 스타일 추가 ★ */
   #toast {
     position: fixed;
     bottom: 30px;
@@ -209,7 +203,6 @@
   데이터를 불러오는 중입니다...
 </div>
 
-<!-- ★ 토스트 알림창 요소 추가 ★ -->
 <div id="toast">복사 완료!</div>
 
 <div class="container" style="display: none;" id="mainContainer">
@@ -345,8 +338,16 @@
   </div>
 
   <div id="tab_songbook" class="tab-content active">
+    <!-- ★ 검색 및 정렬 컨트롤 영역 업데이트 ★ -->
     <div class="controls">
-      <input type="text" id="searchInput" class="search" placeholder="⌕ 곡명 또는 가수 검색...">
+      <div class="form-row">
+        <input type="text" id="searchInput" class="search" placeholder="⌕ 곡명 또는 가수 검색..." style="flex: 1;">
+        <select id="sortSelect" style="width: auto; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-weight: bold; color: #555; background: white; cursor: pointer; outline: none;">
+          <option value="default">최신 등록순</option>
+          <option value="title">곡명순</option>
+          <option value="artist">가수순</option>
+        </select>
+      </div>
       <div class="genres" id="genreContainer">
         <button class="badge active" data-genre="all">전체</button>
       </div>
@@ -382,6 +383,7 @@
   </div>
 </div>
 
+<!-- 모달 영역 생략 없이 전부 포함 -->
 <div class="modal-overlay" id="lyricsModal" onclick="closeModal('lyricsModal', event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 class="modal-title" id="lyricsModalTitle">곡 제목</h3>
@@ -493,6 +495,7 @@
   let currentUseLinks = pageInfo.useLinks;
   let currentViewWeekIndex = 0; 
   let currentGenre = "all";
+  let currentSort = "default"; // ★ 정렬 상태 변수 추가 ("default", "title", "artist")
   let isInitialLoad = true;
   let isAdminAuthenticated = false;
 
@@ -925,16 +928,58 @@
     });
   }
 
+  // ★ 정렬을 위한 텍스트 그룹 판별 함수 (1:한글, 2:영어, 3:숫자, 4:특수문자)
+  function getSortGroup(char) {
+    if (!char) return 5;
+    if (/[가-힣ㄱ-ㅎㅏ-ㅣ]/.test(char)) return 1;
+    if (/[a-zA-Z]/.test(char)) return 2;
+    if (/[0-9]/.test(char)) return 3;
+    return 4;
+  }
+
+  // ★ 커스텀 문자열 정렬 함수 (한글 -> 영어 -> 특수기호 순)
+  function customStringCompare(str1, str2) {
+    // 띄어쓰기를 무시하고 소문자로 변환하여 비교합니다.
+    str1 = (str1 || "").replace(/\s+/g, '').toLowerCase();
+    str2 = (str2 || "").replace(/\s+/g, '').toLowerCase();
+    
+    const minLen = Math.min(str1.length, str2.length);
+    for(let i = 0; i < minLen; i++) {
+      let c1 = str1[i];
+      let c2 = str2[i];
+      let g1 = getSortGroup(c1);
+      let g2 = getSortGroup(c2);
+      
+      if (g1 !== g2) {
+        return g1 - g2; // 그룹 번호가 작은 것(한글)이 앞으로
+      }
+      if (c1 !== c2) {
+        return c1.localeCompare(c2, 'ko-KR'); // 같은 그룹이면 기본 사전순 정렬
+      }
+    }
+    return str1.length - str2.length; // 모든 문자가 같으면 짧은 글자가 앞으로
+  }
+
   function renderSongs() {
     generateGenreButtons();
 
     const searchText = document.getElementById("searchInput").value.toLowerCase();
-    const filteredSongs = songs.filter(song => {
+    let filteredSongs = songs.filter(song => {
       const songGenre = song.genre ? song.genre.trim() : "기타";
       const matchGenre = currentGenre === "all" || songGenre === currentGenre;
       const matchSearch = song.title.toLowerCase().includes(searchText) || song.artist.toLowerCase().includes(searchText);
       return matchGenre && matchSearch;
     });
+
+    // ★ 선택된 정렬 방식에 따라 목록 정렬하기 ★
+    if (currentSort === "title") {
+      filteredSongs.sort((a, b) => customStringCompare(a.title, b.title));
+    } else if (currentSort === "artist") {
+      filteredSongs.sort((a, b) => customStringCompare(a.artist, b.artist));
+    } else {
+      // 기본값(등록순): 나중에 추가된 곡(id값이 큰 곡)이 가장 위로 오도록 내림차순 정렬
+      filteredSongs.sort((a, b) => b.id - a.id);
+    }
 
     const songList = document.getElementById("songList");
     songList.innerHTML = "";
@@ -944,7 +989,6 @@
       const li = document.createElement("li");
       li.className = "song-item";
       
-      // ★ 노래 칸 클릭 이벤트 추가 (텍스트 복사)
       li.onclick = (e) => copySongInfo(e, song.id);
       
       const songGenre = song.genre ? song.genre.trim() : "기타";
@@ -980,18 +1024,13 @@
     });
   }
 
-  // ★ 텍스트 복사 기능 함수 추가
   function copySongInfo(event, id) {
-    // 만약 사용자가 우측에 있는 버튼(가사/메모, 수정, 삭제)을 클릭했다면 복사하지 않음
     if (event.target.tagName === 'BUTTON' || event.target.closest('button')) {
       return;
     }
-
     const song = songs.find(s => s.id === id);
     if (song) {
-      // 복사할 텍스트 형식: "가수 - 노래제목"
       const copyText = `${song.artist} - ${song.title}`;
-      
       navigator.clipboard.writeText(copyText).then(() => {
         showToast(`🎵 '${copyText}' 복사 완료!`);
       }).catch(err => {
@@ -1001,16 +1040,11 @@
     }
   }
 
-  // ★ 복사 완료 토스트 알림창 표시 함수
   function showToast(message) {
     const toast = document.getElementById("toast");
     toast.textContent = message;
     toast.classList.add("show");
-    
-    // 2초 후 팝업 숨기기
-    setTimeout(() => {
-      toast.classList.remove("show");
-    }, 2000);
+    setTimeout(() => { toast.classList.remove("show"); }, 2000);
   }
 
   async function addNewSong() {
@@ -1139,6 +1173,12 @@
   });
 
   document.getElementById("searchInput").addEventListener("input", renderSongs);
+
+  // ★ 정렬 선택 박스 변경 이벤트 추가
+  document.getElementById("sortSelect").addEventListener("change", (e) => {
+    currentSort = e.target.value;
+    renderSongs();
+  });
 
 </script>
 </body>
