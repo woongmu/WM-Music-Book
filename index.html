@@ -25,7 +25,7 @@
          배너 아래로 나온 양 57 / 549 = 10.35%
          카드 위 여백  61 / 549 = 11.1%                      */
     --card-radius: 20px;
-    --banner-radius: 24px;
+    --banner-radius: 0px;
     /* 카드(=배너) 실제 폭. %는 부모 폭을 기준으로 계산되므로
        위쪽 여백은 반드시 이 값으로 계산해야 한다. */
     --card-w: min(100vw - 40px, 600px);
@@ -356,9 +356,9 @@
 <div id="toast">복사 완료!</div>
 
 <div class="site-top" id="siteTop" style="display: none;">
-  <div class="site-banner" id="siteBanner">배너 이미지</div>
+  <div class="site-banner" id="siteBanner"></div>
   <div class="site-profile-wrap">
-    <div class="site-profile" id="siteProfile">프로필</div>
+    <div class="site-profile" id="siteProfile"></div>
   </div>
 </div>
 
@@ -598,7 +598,7 @@
 
       <div class="upbo-summary">
         <span>시청자 <b id="viewerCount">0</b>명</span>
-        <span>누적 업보 <b id="upboTotal">0</b>회</span>
+        <span>남은 업보 <b id="upboTotal">0</b>회</span>
       </div>
 
       <div class="viewer-grid" id="viewerGrid"></div>
@@ -958,7 +958,7 @@
 
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('admin') === 'true') {
-        const passwordInput = prompt("관리자 비밀번호를 입력하세요\n(초기 비밀번호: 12345):");
+        const passwordInput = prompt("관리자 비밀번호를 입력하세요");
         if (passwordInput === pageInfo.password) {
           isAdminAuthenticated = true;
           document.getElementById('adminBox').style.display = 'block';
@@ -970,7 +970,7 @@
             if (currentResponseSurveyId) openResponses(currentResponseSurveyId, true);
           });
         } else {
-          alert("비밀번호가 틀렸습니다. 일반 시청자 모드로 접속합니다.");
+          alert("비밀번호가 틀렸습니다.\n일반 시청자 모드로 접속합니다.");
           window.history.replaceState({}, document.title, window.location.pathname);
         }
       }
@@ -1262,7 +1262,7 @@
         try { localStorage.setItem(doneKey(s.id), '1'); } catch (e) {}
         closeModal('surveyModal');
         renderSurveys();
-        showToast("답변을 남겼습니다. 고마워요 ♡");
+        showToast("답변 완료\n감사합니다💜");
       })
       .catch(() => alert("답변 저장에 실패했습니다. 잠시 후 다시 시도해주세요."));
   }
@@ -1306,7 +1306,7 @@
     row.className = "form-row memo-row type-row";
     row.dataset.typeId = id || ("t" + Date.now() + Math.floor(Math.random() * 1000));
     row.innerHTML = `
-      <input type="text" class="type-name" placeholder="업보 이름 (예: 지각)" value="${esc(name)}">
+      <input type="text" class="type-name" placeholder="업보 이름 (예: 방셀 A)" value="${esc(name)}">
       <label style="font-size:0.85em; display:flex; align-items:center; gap:4px; cursor:pointer; white-space:nowrap; color:#555;">
         <input type="checkbox" class="type-event" ${isEvent ? 'checked' : ''}> 이벤트
       </label>
@@ -1488,7 +1488,7 @@
       <div>
         <div class="modal-title">${esc(v.nickname)}</div>
         ${v.platformId ? `<div style="font-size:0.8em; color:#aaa;">${esc(v.platformId)}</div>` : ''}
-        <div style="font-size:0.85em; color:#888; margin-top:2px;">누적 업보 <b style="color:var(--primary);">${viewerTotal(v)}</b>회</div>
+        <div style="font-size:0.85em; color:#888; margin-top:2px;">남은 업보 <b style="color:var(--primary);">${viewerTotal(v)}</b>회</div>
       </div>`;
 
     renderUpboRows(v);
