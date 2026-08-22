@@ -16,30 +16,100 @@
     --border: #ffd1dc;
     --survey-accent: #b085d9;
     --survey-accent-soft: rgba(176, 133, 217, 0.15);
+
+    /* ===== 상단 레이아웃 (목업 실측 비율) =====
+       배너와 흰 카드는 같은 폭이고, 카드는 배너 바로 아래에 붙는다.
+       아래 % 값은 모두 '카드 폭' 기준이라 화면이 좁아져도 모양이 유지된다.
+         배너 높이   152 / 549 (가로세로비 549:152)
+         프로필 지름 128 / 549 = 23.32%  (흰 링 6px 포함)
+         배너 아래로 나온 양 57 / 549 = 10.35%
+         카드 위 여백  61 / 549 = 11.1%                      */
+    --card-radius: 20px;
+    --banner-radius: 24px;
+    /* 카드(=배너) 실제 폭. %는 부모 폭을 기준으로 계산되므로
+       위쪽 여백은 반드시 이 값으로 계산해야 한다. */
+    --card-w: min(100vw - 40px, 600px);
   }
   body {
     font-family: 'Pretendard', -apple-system, sans-serif;
     background-color: var(--bg);
     color: var(--text);
     margin: 0;
-    padding: 20px;
+    padding: 0 0 24px;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     transition: background-color 0.3s ease;
   }
-  .container {
-    max-width: 600px;
+
+  /* ===== 상단 배너 & 프로필 ===== */
+  /* 배너 영역은 흰 카드와 정확히 같은 폭을 갖는다 */
+  .site-top {
+    width: var(--card-w);
+    margin-top: 20px;
+  }
+  .site-banner {
     width: 100%;
+    aspect-ratio: 549 / 152;
+    border-radius: var(--banner-radius);
+    background-color: #3a3a3a;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: clamp(0.95em, 3.2vw, 1.4em);
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+  .site-banner.has-img { color: transparent; }
+
+  /* 위아래 음수 여백으로 원이 배너에 걸치게 하고, 카드는 배너 바로 아래에서 시작 */
+  .site-profile-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: -12.97%;
+    margin-bottom: -10.35%;
+    position: relative;
+    z-index: 5;
+  }
+  .site-profile {
+    width: 23.32%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background-color: #3a3a3a;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 6px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 700;
+    font-size: clamp(0.72em, 2.2vw, 1em);
+    box-sizing: border-box;
+  }
+  .site-profile.has-img { color: transparent; }
+
+  .container {
+    width: var(--card-w);
+    box-sizing: border-box;
     background: white;
-    border-radius: 20px;
-    padding: 30px;
+    border-radius: 0 0 var(--card-radius) var(--card-radius);
+    padding: calc(var(--card-w) * 0.111) 30px 30px;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
   }
 
+  @media (max-width: 420px) {
+    .site-profile { border-width: 4px; }
+    .container { padding-left: 18px; padding-right: 18px; padding-bottom: 24px; }
+  }
+
   header { text-align: center; margin-bottom: 25px; }
-  .icons { color: var(--primary); font-size: 1.2em; margin-bottom: 10px; transition: color 0.3s; }
-  header h1 { color: var(--primary); margin: 5px 0; font-size: 1.8em; transition: color 0.3s; }
-  header p { color: #666; font-size: 0.95em; line-height: 1.5; white-space: pre-wrap; }
+  header h1 { color: var(--primary); margin: 0; font-size: 1.8em; transition: color 0.3s; }
 
   .tabs { display: flex; gap: 8px; margin-bottom: 25px; }
   .tab-btn {
@@ -153,6 +223,15 @@
   .art-option { border: 2px solid transparent; border-radius: 6px; cursor: pointer; overflow: hidden; transition: all 0.2s; background: #eee; aspect-ratio: 1/1; }
   .art-option img { width: 100%; height: 100%; object-fit: cover; }
   .art-option.selected { border-color: var(--primary); transform: scale(1.03); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+  /* ===== 이미지 관리 미리보기 ===== */
+  .media-preview {
+    width: 100%; height: 90px; border-radius: 8px; border: 1px solid var(--border);
+    background: #f3f3f3 center/cover no-repeat; display: flex; align-items: center;
+    justify-content: center; color: #aaa; font-size: 0.85em;
+  }
+  .media-preview.round { width: 90px; height: 90px; border-radius: 50%; margin: 0 auto; }
+  .media-hint { font-size: 0.78em; color: #999; line-height: 1.5; }
 
   .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
   .modal-content { background: white; padding: 25px; border-radius: 15px; max-width: 400px; width: 85%; max-height: 82vh; display: flex; flex-direction: column; gap: 15px; }
@@ -276,11 +355,16 @@
 
 <div id="toast">복사 완료!</div>
 
+<div class="site-top" id="siteTop" style="display: none;">
+  <div class="site-banner" id="siteBanner">배너 이미지</div>
+  <div class="site-profile-wrap">
+    <div class="site-profile" id="siteProfile">프로필</div>
+  </div>
+</div>
+
 <div class="container" style="display: none;" id="mainContainer">
   <header>
-    <div class="icons" id="pageIconsDisplay">♥ ♪ ♥</div>
-    <h1 id="pageTitleDisplay">나만의 노래책</h1>
-    <p id="pageDescDisplay">곡명이나 가수를 검색하거나,<br>원하는 장르에서 신청곡을 골라보세요.</p>
+    <h1 id="pageTitleDisplay">웅무</h1>
   </header>
 
   <div class="tabs">
@@ -291,6 +375,43 @@
 
   <div id="adminBox">
     <h4>🛠️ 관리자 설정 (나에게만 보임)</h4>
+
+    <div class="admin-section">
+      <h5>🖼️ 상단 배너 · 프로필 이미지</h5>
+
+      <div class="form-group" style="margin-bottom: 18px;">
+        <div class="lyrics-header">
+          <span style="color: var(--primary);">배너 이미지</span>
+          <button type="button" class="btn-small" onclick="clearMedia('banner')">비우기</button>
+        </div>
+        <div class="media-preview" id="bannerPreview">미리보기</div>
+        <input type="text" id="mediaBannerUrl" placeholder="이미지 주소(URL) 붙여넣기">
+        <input type="file" id="mediaBannerFile" accept="image/*">
+        <div class="form-row">
+          <span style="font-size: 0.85em; color: #666; white-space: nowrap;">배너 높이</span>
+          <input type="number" id="mediaBannerHeight" min="80" max="420" step="10" placeholder="비우면 자동 (기본 비율)">
+          <span style="font-size: 0.85em; color: #999;">px</span>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 14px;">
+        <div class="lyrics-header">
+          <span style="color: var(--primary);">프로필 이미지</span>
+          <button type="button" class="btn-small" onclick="clearMedia('profile')">비우기</button>
+        </div>
+        <div class="media-preview round" id="profilePreview">미리보기</div>
+        <input type="text" id="mediaProfileUrl" placeholder="이미지 주소(URL) 붙여넣기">
+        <input type="file" id="mediaProfileFile" accept="image/*">
+      </div>
+
+      <button class="action-btn" onclick="saveMedia()">이미지 저장하기</button>
+
+      <div class="media-hint" style="margin-top: 10px;">
+        · URL을 넣으면 그 주소를 그대로 씁니다. 파일을 고르면 파일이 우선 적용됩니다.<br>
+        · GIF는 움직임을 살리려고 원본 그대로 저장하니 <b>1MB 이하</b> 파일을 권장합니다.<br>
+        · 일반 사진(JPG·PNG)은 자동으로 크기를 줄여 저장합니다.
+      </div>
+    </div>
 
     <div class="admin-section">
       <h5>📣 설문조사 관리 (3페이지)</h5>
@@ -427,9 +548,7 @@
           <label>포인트 색: <input type="color" id="settingPrimaryColor"></label>
           <label>배경 색: <input type="color" id="settingBgColor"></label>
         </div>
-        <input type="text" id="settingIcons" placeholder="상단 아이콘 (예: ♥ ♪ ♥)">
         <input type="text" id="settingTitle" placeholder="메인 제목 입력">
-        <textarea id="settingDesc" placeholder="설명 글 입력"></textarea>
         <input type="text" id="settingUpboDesc" placeholder="업보 페이지 안내 문구">
         <input type="text" id="settingSurveyDesc" placeholder="설문 페이지 안내 문구">
         <input type="text" id="settingPassword" placeholder="새 관리자 비밀번호">
@@ -479,7 +598,7 @@
 
       <div class="upbo-summary">
         <span>시청자 <b id="viewerCount">0</b>명</span>
-        <span>남은 업보 <b id="upboTotal">0</b>회</span>
+        <span>누적 업보 <b id="upboTotal">0</b>회</span>
       </div>
 
       <div class="viewer-grid" id="viewerGrid"></div>
@@ -619,9 +738,7 @@
   // ==========================================
 
   const defaultPageInfo = {
-    icons: "♥ ♪ ♥",
-    title: "나만의 노래책",
-    desc: "곡명이나 가수를 검색하거나,\n원하는 장르에서 신청곡을 골라보세요.",
+    title: "웅무",
     primaryColor: "#ff85a2",
     bgColor: "#fff5f7",
     password: "12345",
@@ -632,7 +749,12 @@
     avatarSource: "soop"
   };
 
+  // 배너·프로필 이미지는 용량이 크므로 별도 노드에 저장한다.
+  // (streamerData 안에 두면 노래를 고칠 때마다 이미지까지 다시 내려받게 됨)
+  const defaultSiteMedia = { banner: "", profile: "", bannerHeight: 0 };
+
   let pageInfo = { ...defaultPageInfo };
+  let siteMedia = { ...defaultSiteMedia };
   let songs = [];
   let upboTypes = [];
   let viewers = [];
@@ -665,6 +787,157 @@
     return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
   }
 
+  // ==========================================
+  // 상단 배너 · 프로필 이미지
+  // ==========================================
+  db.ref('siteMedia').on('value', (snap) => {
+    siteMedia = { ...defaultSiteMedia, ...(snap.val() || {}) };
+    renderSiteMedia();
+    if (isAdminAuthenticated) fillMediaForm();
+  });
+
+  function renderSiteMedia() {
+    const banner = document.getElementById('siteBanner');
+    const profile = document.getElementById('siteProfile');
+
+    // 높이를 직접 지정하면 그 값을, 비워두면 CSS의 목업 비율(폭의 19.57%)을 쓴다
+    const h = parseInt(siteMedia.bannerHeight);
+    banner.style.height = (h >= 80 && h <= 420) ? h + "px" : "";
+
+    if (siteMedia.banner) {
+      banner.style.backgroundImage = `url("${cssUrl(siteMedia.banner)}")`;
+      banner.classList.add('has-img');
+    } else {
+      banner.style.backgroundImage = "none";
+      banner.classList.remove('has-img');
+    }
+
+    if (siteMedia.profile) {
+      profile.style.backgroundImage = `url("${cssUrl(siteMedia.profile)}")`;
+      profile.classList.add('has-img');
+    } else {
+      profile.style.backgroundImage = "none";
+      profile.classList.remove('has-img');
+    }
+  }
+
+  // background-image 안에서 따옴표가 깨지지 않도록 처리
+  function cssUrl(u) {
+    return String(u || "").replace(/"/g, '%22').replace(/\n/g, '');
+  }
+
+  function fillMediaForm() {
+    const b = document.getElementById('mediaBannerUrl');
+    const p = document.getElementById('mediaProfileUrl');
+    if (!b || !p) return;
+
+    // data: 로 시작하면 업로드된 파일이므로 URL 칸에는 표시하지 않는다
+    b.value = siteMedia.banner.startsWith('data:') ? "" : siteMedia.banner;
+    p.value = siteMedia.profile.startsWith('data:') ? "" : siteMedia.profile;
+    const bh = parseInt(siteMedia.bannerHeight);
+    document.getElementById('mediaBannerHeight').value = (bh >= 80) ? bh : "";
+
+    setPreview('bannerPreview', siteMedia.banner);
+    setPreview('profilePreview', siteMedia.profile);
+  }
+
+  function setPreview(id, url) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (url) {
+      el.style.backgroundImage = `url("${cssUrl(url)}")`;
+      el.textContent = "";
+    } else {
+      el.style.backgroundImage = "none";
+      el.textContent = "미리보기";
+    }
+  }
+
+  function fileToDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("파일을 읽지 못했습니다."));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // GIF는 애니메이션을 살리려고 원본 그대로, 나머지는 캔버스로 축소해서 용량을 줄인다
+  async function prepareImage(file, maxWidth) {
+    const raw = await fileToDataURL(file);
+    if (file.type === 'image/gif') return raw;
+
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+        try {
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
+        } catch (e) {
+          resolve(raw);   // 변환 실패 시 원본 사용
+        }
+      };
+      img.onerror = () => resolve(raw);
+      img.src = raw;
+    });
+  }
+
+  async function saveMedia() {
+    const bannerFile = document.getElementById('mediaBannerFile').files[0];
+    const profileFile = document.getElementById('mediaProfileFile').files[0];
+    const bannerUrl = document.getElementById('mediaBannerUrl').value.trim();
+    const profileUrl = document.getElementById('mediaProfileUrl').value.trim();
+
+    // 0 또는 빈칸이면 '자동'(목업 비율)
+    let height = parseInt(document.getElementById('mediaBannerHeight').value);
+    if (!height || height < 80) height = 0;
+    if (height > 420) height = 420;
+
+    const next = { banner: siteMedia.banner, profile: siteMedia.profile, bannerHeight: height };
+
+    try {
+      // 파일이 우선, 없으면 URL 칸 사용
+      if (bannerFile) next.banner = await prepareImage(bannerFile, 1200);
+      else if (bannerUrl) next.banner = bannerUrl;
+
+      if (profileFile) next.profile = await prepareImage(profileFile, 400);
+      else if (profileUrl) next.profile = profileUrl;
+    } catch (e) {
+      alert(e.message || "이미지를 처리하지 못했습니다.");
+      return;
+    }
+
+    const tooBig = [next.banner, next.profile].find(v => v && v.length > 1200000);
+    if (tooBig) {
+      alert("이미지 용량이 너무 큽니다 (약 1MB 초과).\n더 작은 파일을 쓰거나, 이미지 주소(URL)를 붙여넣어 주세요.");
+      return;
+    }
+
+    db.ref('siteMedia').set(next)
+      .then(() => {
+        document.getElementById('mediaBannerFile').value = "";
+        document.getElementById('mediaProfileFile').value = "";
+        showToast("상단 이미지를 저장했습니다");
+      })
+      .catch(() => alert("저장에 실패했습니다. 잠시 후 다시 시도해주세요."));
+  }
+
+  function clearMedia(which) {
+    if (!confirm(which === 'banner' ? "배너 이미지를 지울까요?" : "프로필 이미지를 지울까요?")) return;
+    db.ref('siteMedia/' + which).set("");
+    document.getElementById(which === 'banner' ? 'mediaBannerFile' : 'mediaProfileFile').value = "";
+    document.getElementById(which === 'banner' ? 'mediaBannerUrl' : 'mediaProfileUrl').value = "";
+  }
+
+  // ==========================================
   db.ref('streamerData').on('value', (snapshot) => {
     const data = snapshot.val() || {};
 
@@ -680,6 +953,7 @@
     if (isInitialLoad) {
       isInitialLoad = false;
       document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('siteTop').style.display = 'block';
       document.getElementById('mainContainer').style.display = 'block';
 
       const urlParams = new URLSearchParams(window.location.search);
@@ -688,6 +962,7 @@
         if (passwordInput === pageInfo.password) {
           isAdminAuthenticated = true;
           document.getElementById('adminBox').style.display = 'block';
+          fillMediaForm();
           db.ref('streamerData/responses').on('value', (snap) => {
             responses = snap.val() || {};
             renderAdminSurveys();
@@ -927,9 +1202,8 @@
     body.innerHTML = `
       ${s.desc ? `<p style="font-size:0.88em; color:#666; line-height:1.5; margin:0 0 14px;">${esc(s.desc)}</p>` : ''}
       <div class="q-block">
-        <label class="q-label" for="svNickname">닉네임</label>
-        <input type="text" id="svNickname" maxlength="20" placeholder="닉네임을 적어주세요">
-        <div class="field-error" id="err-nick">닉네임을 먼저 적어주세요</div>
+        <label class="q-label" for="svNickname">닉네임 <span style="color:#aaa; font-weight:500;">(선택)</span></label>
+        <input type="text" id="svNickname" maxlength="20" placeholder="비워두면 '익명'으로 남겨집니다">
       </div>
       <div style="border-top:1px solid #f0f0f0; margin:16px 0;"></div>
       ${s.questions.map((q, i) => `
@@ -944,7 +1218,6 @@
       <button class="btn-small" style="width:100%; padding:9px; margin-top:8px;" onclick="closeModal('surveyModal')">취소</button>`;
 
     body.addEventListener('input', () => {
-      document.getElementById('err-nick').style.display = 'none';
       document.getElementById('err-answer').style.display = 'none';
       updateSubmitState();
     });
@@ -958,25 +1231,20 @@
     const s = surveys.find(x => x.id === currentSurveyId);
     if (!btn || !s) return;
 
-    const nickEl = document.getElementById('svNickname');
-    const hasNick = !!(nickEl && nickEl.value.trim());
+    // 닉네임은 선택 사항. 답변이 하나라도 있으면 등록 가능
     const hasAnswer = s.questions.some(q => {
       const el = document.getElementById('sv-' + q.id);
       return el && el.value.trim();
     });
-    btn.disabled = !(hasNick && hasAnswer);
+    btn.disabled = !hasAnswer;
   }
 
   function submitSurvey() {
     const s = surveys.find(x => x.id === currentSurveyId);
     if (!s) return;
 
-    const nickname = document.getElementById('svNickname').value.trim();
-    if (!nickname) {
-      document.getElementById('err-nick').style.display = 'block';
-      document.getElementById('svNickname').focus();
-      return;
-    }
+    // 비워두면 '익명'으로 저장된다
+    const nickname = document.getElementById('svNickname').value.trim() || '익명';
 
     const answers = {};
     let filled = 0;
@@ -1220,7 +1488,7 @@
       <div>
         <div class="modal-title">${esc(v.nickname)}</div>
         ${v.platformId ? `<div style="font-size:0.8em; color:#aaa;">${esc(v.platformId)}</div>` : ''}
-        <div style="font-size:0.85em; color:#888; margin-top:2px;">남은 업보 <b style="color:var(--primary);">${viewerTotal(v)}</b>회</div>
+        <div style="font-size:0.85em; color:#888; margin-top:2px;">누적 업보 <b style="color:var(--primary);">${viewerTotal(v)}</b>회</div>
       </div>`;
 
     renderUpboRows(v);
@@ -1245,17 +1513,13 @@
 
   // ===== 페이지 설정 =====
   function renderPageInfo() {
-    document.getElementById('pageIconsDisplay').textContent = pageInfo.icons;
     document.getElementById('pageTitleDisplay').textContent = pageInfo.title;
-    document.getElementById('pageDescDisplay').textContent = pageInfo.desc;
 
     document.documentElement.style.setProperty('--primary', pageInfo.primaryColor);
     document.documentElement.style.setProperty('--bg', pageInfo.bgColor);
 
     if (isAdminAuthenticated) {
-      document.getElementById('settingIcons').value = pageInfo.icons;
       document.getElementById('settingTitle').value = pageInfo.title;
-      document.getElementById('settingDesc').value = pageInfo.desc;
       document.getElementById('settingUpboDesc').value = pageInfo.upboDesc || "";
       document.getElementById('settingSurveyDesc').value = pageInfo.surveyDesc || "";
       document.getElementById('settingPrimaryColor').value = pageInfo.primaryColor;
@@ -1268,9 +1532,7 @@
   }
 
   function savePageSettings() {
-    pageInfo.icons = document.getElementById('settingIcons').value.trim();
     pageInfo.title = document.getElementById('settingTitle').value.trim();
-    pageInfo.desc = document.getElementById('settingDesc').value.trim();
     pageInfo.upboDesc = document.getElementById('settingUpboDesc').value.trim();
     pageInfo.surveyDesc = document.getElementById('settingSurveyDesc').value.trim();
     pageInfo.primaryColor = document.getElementById('settingPrimaryColor').value;
