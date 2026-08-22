@@ -3,10 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>웅무 노래책 & 방송 정보</title>
-<!-- 엑셀(CSV) 파일을 읽기 위한 도구 -->
+<title>웅무</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<!-- ★ Firebase 실시간 데이터베이스 연동 도구 ★ -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -16,6 +14,8 @@
     --bg: #fff5f7;
     --text: #333;
     --border: #ffd1dc;
+    --survey-accent: #b085d9;
+    --survey-accent-soft: rgba(176, 133, 217, 0.15);
   }
   body {
     font-family: 'Pretendard', -apple-system, sans-serif;
@@ -35,16 +35,16 @@
     padding: 30px;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
   }
-  
+
   header { text-align: center; margin-bottom: 25px; }
   .icons { color: var(--primary); font-size: 1.2em; margin-bottom: 10px; transition: color 0.3s; }
   header h1 { color: var(--primary); margin: 5px 0; font-size: 1.8em; transition: color 0.3s; }
   header p { color: #666; font-size: 0.95em; line-height: 1.5; white-space: pre-wrap; }
-  
-  .tabs { display: flex; gap: 10px; margin-bottom: 25px; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 25px; }
   .tab-btn {
-    flex: 1; padding: 14px; border-radius: 12px; border: none; background: #f4f4f4;
-    cursor: pointer; font-weight: bold; font-size: 1.05em; color: #888; transition: 0.2s;
+    flex: 1; padding: 13px 6px; border-radius: 12px; border: none; background: #f4f4f4;
+    cursor: pointer; font-weight: bold; font-size: 0.98em; color: #888; transition: 0.2s;
   }
   .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
   .tab-content { display: none; animation: fadeIn 0.3s ease; }
@@ -63,19 +63,19 @@
   #adminBox h4 { margin: 0 0 15px 0; color: var(--primary); font-size: 1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;}
   .admin-section { margin-bottom: 15px; background: white; padding: 12px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
   .admin-section h5 { margin: 0 0 8px 0; color: #555; }
-  
+
   .form-group { display: flex; flex-direction: column; gap: 8px; }
-  .form-row { display: flex; gap: 10px; align-items: center; } /* 간격 살짝 넓힘 */
+  .form-row { display: flex; gap: 10px; align-items: center; }
   .color-row { display: flex; gap: 15px; font-size: 0.9em; color: #555; margin-bottom: 5px; }
   .color-row label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
   input[type="color"] { width: 35px; height: 35px; padding: 0; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
-  
-  input[type="text"], input[type="password"], select, textarea {
+
+  input[type="text"], input[type="password"], input[type="number"], select, textarea {
     padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; flex: 1;
     font-family: inherit; font-size: 0.9em; background: white; box-sizing: border-box;
   }
   textarea { resize: vertical; min-height: 60px; }
-  
+
   input[type="file"] { padding: 8px; border: 1px dashed var(--primary); border-radius: 8px; background: var(--bg); font-size: 0.9em; }
 
   button.action-btn { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: opacity 0.2s; }
@@ -91,67 +91,37 @@
   .toggle-btn.on { background: var(--primary); color: white; border-color: var(--primary); }
 
   .controls { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
-  
-  /* ★ 검색창 스타일 개선 (둥근 모서리와 패딩) ★ */
-  input[type="text"].search { 
-    width: 100%; 
-    font-size: 0.95em; 
-    border-radius: 10px; 
-    padding: 10px 14px;
-    transition: all 0.2s;
+
+  input[type="text"].search {
+    width: 100%; font-size: 0.95em; border-radius: 10px; padding: 10px 14px; transition: all 0.2s;
   }
   input[type="text"].search:focus {
-    border-color: var(--primary);
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(255, 133, 162, 0.1);
+    border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px rgba(255, 133, 162, 0.1);
   }
 
-  /* ★ 드롭다운 정렬 박스 커스텀 디자인 ★ */
   .sort-select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
     background-color: white;
-    /* 커스텀 화살표 아이콘 (SVG) 삽입 */
     background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 16px;
-    padding: 10px 34px 10px 14px;
-    font-size: 0.9em;
-    font-family: inherit;
-    font-weight: 600;
-    color: #555;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    cursor: pointer;
-    outline: none;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    width: auto;
+    background-repeat: no-repeat; background-position: right 10px center; background-size: 16px;
+    padding: 10px 34px 10px 14px; font-size: 0.9em; font-family: inherit; font-weight: 600; color: #555;
+    border: 1px solid var(--border); border-radius: 10px; cursor: pointer; outline: none;
+    transition: all 0.2s ease; white-space: nowrap; width: auto;
   }
-  .sort-select:hover, .sort-select:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(255, 133, 162, 0.1);
-  }
+  .sort-select:hover, .sort-select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(255, 133, 162, 0.1); }
 
   .genres { display: flex; gap: 8px; flex-wrap: wrap; }
   .badge { background: #f4f4f4; color: #555; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: 500; transition: 0.2s; }
   .badge:hover { background: #eaeaea; }
   .badge.active { background: var(--primary); color: white; }
-  
+
   .song-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; }
   .song-header h3 { margin: 0; }
   .song-list { list-style: none; padding: 0; margin: 0; }
-  
-  .song-item { 
-    padding: 15px; 
-    border-bottom: 1px solid #f0f0f0; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease;
+
+  .song-item {
+    padding: 15px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between;
+    align-items: center; cursor: pointer; transition: background-color 0.2s ease, transform 0.1s ease;
   }
   .song-item:hover { background-color: #fafafa; }
   .song-item:active { background-color: #f0f0f0; }
@@ -162,10 +132,10 @@
   .song-artist { color: #888; font-size: 0.9em; }
   .song-meta { display: flex; gap: 6px; align-items: center; margin-top: 2px; }
   .song-difficulty { color: #f39c12; font-size: 0.85em; font-weight: bold; }
-  
+
   .right-side { display: flex; align-items: center; gap: 6px; }
   .song-genre { font-size: 0.8em; background: var(--bg); color: var(--primary); padding: 4px 10px; border-radius: 12px; margin-right: 5px; border: 1px solid rgba(0,0,0,0.05); }
-  
+
   .btn-small { background: white; border: 1px solid var(--border); color: #555; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: 600; transition: 0.2s;}
   .btn-lyrics { border-color: var(--primary); color: var(--primary); }
   .btn-small:hover { background: #fdf2f4; }
@@ -174,7 +144,7 @@
 
   .lyrics-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
   .lyrics-header span { font-size: 0.85em; color: #666; font-weight: bold; }
-  
+
   .memo-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
   .memo-row input.memo-label { flex: 0.35; }
   .memo-row input.memo-content { flex: 0.65; }
@@ -185,58 +155,115 @@
   .art-option.selected { border-color: var(--primary); transform: scale(1.03); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
   .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
-  .modal-content { background: white; padding: 25px; border-radius: 15px; max-width: 400px; width: 85%; max-height: 80vh; display: flex; flex-direction: column; gap: 15px; }
+  .modal-content { background: white; padding: 25px; border-radius: 15px; max-width: 400px; width: 85%; max-height: 82vh; display: flex; flex-direction: column; gap: 15px; }
   .modal-title { font-size: 1.2em; font-weight: bold; color: var(--primary); margin: 0; }
-  
+
   .modal-memo { background: #f8f9fa; padding: 12px; border-radius: 8px; font-size: 0.9em; color: #444; border-left: 4px solid var(--primary); word-break: break-all; display: none; }
   .modal-memo-item { margin-bottom: 6px; }
   .modal-memo-item:last-child { margin-bottom: 0; }
   .modal-lyrics { flex: 1; overflow-y: auto; white-space: pre-wrap; font-size: 0.95em; line-height: 1.6; color: #444; }
+  .modal-scroll { flex: 1; overflow-y: auto; }
 
-  .links-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
-  .link-card { display: flex; align-items: center; justify-content: center; gap: 8px; background: #fdfdfd; border: 2px solid #f0f0f0; border-radius: 12px; padding: 14px; text-decoration: none; color: #333; font-weight: bold; font-size: 1.1em; transition: 0.2s; }
-  .link-card:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-
-  .schedule-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: #fff5f7; padding: 8px 15px; border-radius: 12px; border: 1px solid var(--border); }
-  .schedule-nav button { background: white; border: 1px solid var(--primary); color: var(--primary); border-radius: 8px; padding: 4px 10px; cursor: pointer; font-weight: bold; font-size: 0.85em; transition: 0.2s; }
-  .schedule-nav button:hover:not(:disabled) { background: var(--primary); color: white; }
-  .schedule-nav button:disabled { border-color: #ddd; color: #aaa; cursor: not-allowed; }
-  .schedule-nav strong { color: var(--primary); font-size: 1em; }
-
-  .schedule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 8px; margin-bottom: 30px; }
-  .schedule-card { background: #fdfdfd; border: 1px solid var(--border); border-radius: 12px; padding: 15px 5px; text-align: center; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-  .schedule-card.off { background: #f1f1f1; border-color: #ddd; opacity: 0.8; }
-  .s-day { font-weight: 800; font-size: 1.1em; color: var(--primary); display: flex; flex-direction: column; gap: 2px; }
-  .s-date { font-size: 0.7em; color: #888; font-weight: normal; }
-  .schedule-card.off .s-day, .schedule-card.off .s-date { color: #888; }
-  .s-time { font-size: 0.85em; font-weight: bold; color: #555; background: white; padding: 4px; border-radius: 6px; border: 1px solid #eee; }
-  .s-content { font-size: 0.85em; color: #444; word-break: keep-all; line-height: 1.3; }
   .section-title { font-size: 1.2em; font-weight: bold; border-bottom: 2px solid var(--primary); padding-bottom: 8px; margin-bottom: 15px; color: #333; display: flex; align-items: center; gap: 8px; }
+
+  /* ===== 업보 ===== */
+  .upbo-summary { display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; color: #888; margin-bottom: 12px; }
+  .upbo-summary b { color: var(--primary); }
+
+  .viewer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 480px) { .viewer-grid { grid-template-columns: repeat(2, 1fr); gap: 9px; } }
+
+  .viewer-card { background: #fdfdfd; border: 2px solid #f0f0f0; border-radius: 16px; padding: 18px 10px; text-align: center; cursor: pointer; transition: 0.2s; }
+  .viewer-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.06); }
+  .viewer-card:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+  .viewer-av, .viewer-av-fb { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 10px; display: block; object-fit: cover; border: 3px solid var(--border); background: var(--bg); }
+  .viewer-av-fb { display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 22px; font-weight: 800; }
+  .viewer-nick { font-size: 0.95em; font-weight: 700; color: #333; word-break: break-all; }
+  .viewer-id { font-size: 0.75em; color: #aaa; margin: 2px 0 8px; word-break: break-all; min-height: 1em; }
+  .viewer-total { display: inline-block; background: var(--primary); color: white; border-radius: 20px; padding: 3px 14px; font-size: 0.8em; font-weight: 800; }
+
+  .upbo-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; margin-bottom: 7px; background: var(--bg); border-radius: 12px; }
+  .upbo-row .nm { flex: 1; font-size: 0.9em; color: #444; font-weight: 600; word-break: break-all; }
+  .upbo-row .ev { font-size: 0.7em; font-weight: 700; color: #b07d18; background: #fff0d6; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
+  .upbo-row .ct { font-size: 0.85em; font-weight: 800; color: var(--primary); background: white; border: 1px solid var(--border); border-radius: 20px; padding: 3px 12px; min-width: 40px; text-align: center; flex-shrink: 0; }
+  .step-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: white; color: var(--primary); font-weight: 800; cursor: pointer; flex-shrink: 0; line-height: 1; }
+  .step-btn:hover { background: #fdf2f4; }
+  .modal-empty { text-align: center; color: #aaa; padding: 30px 10px; font-size: 0.9em; }
+
+  .modal-head { display: flex; align-items: center; gap: 12px; }
+  .modal-av, .modal-av-fb { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border); background: var(--bg); flex-shrink: 0; }
+  .modal-av-fb { display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 20px; font-weight: 800; }
+
+  /* ===== 설문 ===== */
+  .survey-list { display: flex; flex-direction: column; gap: 10px; }
+  .survey-item {
+    border: 2px solid var(--primary); border-radius: 12px; padding: 14px 16px; cursor: pointer;
+    background: white; transition: 0.2s; display: flex; align-items: center; gap: 10px;
+  }
+  .survey-item:hover { background: var(--bg); transform: translateY(-2px); }
+  .survey-item:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+  .survey-item.closed { border-color: #ddd; background: #f1f1f1; color: #888; }
+  .survey-item.closed:hover { background: #ececec; transform: none; }
+  .survey-item .st { flex: 1; font-weight: 600; font-size: 1em; word-break: break-all; }
+  .survey-item.closed .st { color: #888; }
+  .survey-item .sm { font-size: 0.75em; color: #aaa; white-space: nowrap; flex-shrink: 0; }
+  .survey-item .done { font-size: 0.72em; font-weight: 700; color: var(--primary); background: var(--bg); border: 1px solid var(--border); padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
+
+  .q-block { margin-bottom: 14px; }
+  .q-label { font-size: 0.92em; font-weight: 700; color: #444; margin-bottom: 6px; display: block; }
+  .q-block textarea { width: 100%; min-height: 70px; }
+  .q-block input[type="text"] { width: 100%; }
+  .q-block input[type="text"], .q-block textarea {
+    border: 1.5px solid var(--survey-accent);
+    background: #ffffff;
+    color: #333;
+    border-radius: 10px;
+    transition: box-shadow 0.15s ease;
+  }
+  .q-block input[type="text"]::placeholder, .q-block textarea::placeholder { color: #b9b3c2; }
+  .q-block input[type="text"]:focus, .q-block textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--survey-accent-soft);
+  }
+  .field-error { font-size: 0.8em; color: #e74c3c; margin-top: 4px; display: none; }
+
+  button.action-btn:disabled {
+    background: #e0e0e0; color: #9e9e9e; cursor: not-allowed;
+  }
+  button.action-btn:disabled:hover { opacity: 1; }
+
+  .resp-card { background: var(--bg); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+  .resp-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+  .resp-nick { font-weight: 700; color: var(--primary); font-size: 0.95em; word-break: break-all; }
+  .resp-at { font-size: 0.72em; color: #aaa; white-space: nowrap; }
+  .resp-qa { font-size: 0.85em; line-height: 1.55; margin-bottom: 6px; }
+  .resp-qa:last-child { margin-bottom: 0; }
+  .resp-q { color: #888; font-weight: 600; }
+  .resp-a { color: #333; white-space: pre-wrap; word-break: break-word; }
+
+  .admin-survey-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; margin-bottom: 7px; }
+  .admin-survey-row .t { flex: 1; font-size: 0.88em; font-weight: 600; color: #444; word-break: break-all; }
+  .pill { font-size: 0.72em; font-weight: 700; padding: 3px 9px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+  .pill.open { color: #1d7a4c; background: #e3f7ec; }
+  .pill.closed { color: #777; background: #eaeaea; }
+  .cnt-pill { font-size: 0.75em; font-weight: 700; color: var(--primary); background: white; border: 1px solid var(--border); padding: 3px 9px; border-radius: 20px; flex-shrink: 0; }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: #aaa; }
+  .empty-state .big { font-size: 2.2em; margin-bottom: 10px; }
 
   #loadingScreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; color: var(--primary); font-weight: bold; font-size: 1.2em; }
 
   #toast {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.75);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 30px;
-    font-size: 0.95em;
-    font-weight: bold;
-    z-index: 10000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s, bottom 0.3s;
-    pointer-events: none;
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.75); color: white; padding: 12px 24px; border-radius: 30px;
+    font-size: 0.95em; font-weight: bold; z-index: 10000; opacity: 0; visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s, bottom 0.3s; pointer-events: none;
     box-shadow: 0 4px 10px rgba(0,0,0,0.15);
   }
-  #toast.show {
-    opacity: 1;
-    visibility: visible;
-    bottom: 40px;
+  #toast.show { opacity: 1; visibility: visible; bottom: 40px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
 </style>
 </head>
@@ -256,53 +283,81 @@
     <p id="pageDescDisplay">곡명이나 가수를 검색하거나,<br>원하는 장르에서 신청곡을 골라보세요.</p>
   </header>
 
-  <!-- 탭 메뉴 버튼 -->
   <div class="tabs">
     <button class="tab-btn active" data-tab="songbook" onclick="switchTab('songbook')">🎵 노래책</button>
-    <button class="tab-btn" data-tab="info" onclick="switchTab('info')">📅 방송 정보</button>
+    <button class="tab-btn" data-tab="upbo" onclick="switchTab('upbo')">⚡ 업보</button>
+    <button class="tab-btn" data-tab="survey" onclick="switchTab('survey')">📣 설문</button>
   </div>
 
   <div id="adminBox">
     <h4>🛠️ 관리자 설정 (나에게만 보임)</h4>
-    
+
     <div class="admin-section">
-      <h5>📅 & 🔗 방송 정보 통합 관리 (2페이지)</h5>
-      
-      <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-        <button type="button" id="btnToggleSchedule" class="toggle-btn" onclick="toggleFeature('schedule')">✅ 시간표 표시 ON</button>
-        <button type="button" id="btnToggleLinks" class="toggle-btn" onclick="toggleFeature('links')">✅ 링크 표시 ON</button>
+      <h5>📣 설문조사 관리 (3페이지)</h5>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 18px;">
+        <button type="button" id="btnToggleSurvey" class="toggle-btn" onclick="toggleSurvey()">✅ 설문 페이지 ON</button>
       </div>
 
-      <div id="adminScheduleArea">
+      <div id="adminSurveyArea">
         <div class="lyrics-header" style="margin-bottom: 6px;">
-          <span style="color: var(--primary);">📅 이번 주 방송 시간표 설정</span>
+          <span style="color: var(--primary);">➕ 새 설문 만들기</span>
         </div>
-        <div class="form-row" style="margin-bottom: 15px; background: #f4f4f4; padding: 10px; border-radius: 8px; font-size: 0.9em;">
-          <label style="flex:1; display:flex; flex-direction:column; gap:4px; color:#555;">
-            <b>방송 중 아이콘</b>
-            <input type="text" id="settingSchIconOn" placeholder="예: ⏰" style="padding: 6px;">
-          </label>
-          <label style="flex:1; display:flex; flex-direction:column; gap:4px; color:#555;">
-            <b>휴방 아이콘</b>
-            <input type="text" id="settingSchIconOff" placeholder="예: 💤" style="padding: 6px;">
-          </label>
+        <input type="text" id="newSurveyTitle" placeholder="설문 제목 (예: 방송 일주일간 느낀 점)" style="width:100%; margin-bottom:8px;">
+        <input type="text" id="newSurveyDesc" placeholder="안내 문구 (선택)" style="width:100%; margin-bottom:8px;">
+
+        <div class="lyrics-header" style="margin-bottom: 6px;">
+          <span>질문 목록</span>
+          <button type="button" class="btn-small" onclick="addQuestionRow()">➕ 질문 추가</button>
         </div>
-        <div id="adminScheduleList" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
-          <!-- JS로 자동 생성 -->
+        <div id="newQuestionList" class="memo-list"></div>
+        <button class="action-btn" style="margin-bottom: 22px;" onclick="createSurvey()">설문 등록하기</button>
+
+        <div class="lyrics-header" style="margin-bottom: 6px;">
+          <span style="color: var(--primary);">📋 등록된 설문 · 답변 확인</span>
         </div>
-        <div style="display: flex; gap: 10px; margin-bottom: 25px;">
-          <button class="action-btn" onclick="saveInfoSettings(false)">현재 주차 덮어쓰기 (저장)</button>
-          <button class="sub-action-btn" onclick="saveInfoSettings(true)">새로운 주차로 추가 (과거 저장)</button>
-        </div>
+        <div id="adminSurveyList"></div>
+      </div>
+    </div>
+
+    <div class="admin-section">
+      <h5>⚡ 업보 관리 (2페이지)</h5>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 18px;">
+        <button type="button" id="btnToggleUpbo" class="toggle-btn" onclick="toggleUpbo()">✅ 업보 페이지 ON</button>
       </div>
 
-      <div id="adminLinksArea">
+      <div id="adminUpboArea">
         <div class="lyrics-header" style="margin-bottom: 6px;">
-          <span style="color: var(--primary);">🔗 클릭 가능한 바로가기 링크 등록</span>
-          <button type="button" class="btn-small" onclick="addAdminLinkRow()">➕ 링크 추가</button>
+          <span style="color: var(--primary);">📋 업보 종류</span>
+          <button type="button" class="btn-small" onclick="addUpboTypeRow()">➕ 종류 추가</button>
         </div>
-        <div id="adminLinksList" class="memo-list" style="margin-bottom: 10px;"></div>
-        <button class="action-btn" style="margin-top: 5px;" onclick="saveInfoSettings(false)">링크 설정 저장하기</button>
+        <div id="adminTypeList" class="memo-list"></div>
+        <button class="action-btn" style="margin-bottom: 22px;" onclick="saveUpboTypes()">업보 종류 저장하기</button>
+
+        <div class="lyrics-header" style="margin-bottom: 6px;">
+          <span style="color: var(--primary);">🙋 시청자 등록</span>
+        </div>
+        <div class="form-row" style="margin-bottom: 8px;">
+          <input type="text" id="newViewerNick" placeholder="닉네임" style="flex: 0.5;">
+          <input type="text" id="newViewerId" placeholder="플랫폼 아이디 (선택)" style="flex: 0.5;">
+        </div>
+        <div class="form-row" style="margin-bottom: 8px;">
+          <input type="text" id="newViewerAvatar" placeholder="프로필 사진 URL (비워두면 아이디로 자동)">
+        </div>
+        <button class="action-btn" style="margin-bottom: 10px;" onclick="addViewer()">시청자 추가하기</button>
+        <div style="font-size: 0.8em; color: #888; line-height: 1.5;">
+          플랫폼을 고르면 아이디만으로 프로필 사진을 가져옵니다.
+          <div class="form-row" style="margin-top: 6px;">
+            <select id="settingAvatarSource" class="sort-select" style="width: 100%;">
+              <option value="soop">SOOP (숲)</option>
+              <option value="none">사용 안 함 (URL 직접 입력)</option>
+            </select>
+          </div>
+        </div>
+        <div style="font-size: 0.8em; color: #888; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border);">
+          업보 횟수는 <b>업보 탭에서 시청자 카드를 눌러</b> ➖ ➕ 로 조절할 수 있어요.
+        </div>
       </div>
     </div>
 
@@ -342,7 +397,7 @@
             <div style="grid-column: span 3; text-align: center; color: #888; font-size: 0.85em; padding: 10px;">곡명과 가수 입력 후 버튼을 눌러보세요!</div>
           </div>
         </div>
-        
+
         <div class="lyrics-header" style="margin-top: 5px;">
           <span>📝 메모</span>
           <button type="button" class="btn-small" onclick="addMemoRow('newMemoList')">➕ 메모 칸 추가</button>
@@ -354,13 +409,13 @@
             <button type="button" class="btn-small" onclick="this.parentElement.remove()">❌</button>
           </div>
         </div>
-        
+
         <div class="lyrics-header">
           <span>📝 가사</span>
           <button type="button" class="btn-small btn-lyrics" onclick="searchLyricsOnNaver('newTitle', 'newArtist')">🔍 네이버에서 찾기</button>
         </div>
         <textarea id="newLyrics" placeholder="버튼을 눌러 찾은 가사를 붙여넣으세요"></textarea>
-        
+
         <button class="action-btn" onclick="addNewSong()">목록에 추가하기</button>
       </div>
     </div>
@@ -375,6 +430,8 @@
         <input type="text" id="settingIcons" placeholder="상단 아이콘 (예: ♥ ♪ ♥)">
         <input type="text" id="settingTitle" placeholder="메인 제목 입력">
         <textarea id="settingDesc" placeholder="설명 글 입력"></textarea>
+        <input type="text" id="settingUpboDesc" placeholder="업보 페이지 안내 문구">
+        <input type="text" id="settingSurveyDesc" placeholder="설문 페이지 안내 문구">
         <input type="text" id="settingPassword" placeholder="새 관리자 비밀번호">
         <button class="action-btn" onclick="savePageSettings()">설정 적용하기</button>
       </div>
@@ -382,7 +439,6 @@
   </div>
 
   <div id="tab_songbook" class="tab-content active">
-    <!-- ★ 검색 및 정렬 컨트롤 영역 (클래스 기반 스타일 적용) ★ -->
     <div class="controls">
       <div class="form-row">
         <input type="text" id="searchInput" class="search" placeholder="⌕ 곡명 또는 가수 검색...">
@@ -405,29 +461,57 @@
     </div>
   </div>
 
-  <div id="tab_info" class="tab-content">
-    <div id="viewerScheduleWrapper">
-      <div class="section-title">📅 주간 방송 시간표</div>
-      <div class="schedule-nav">
-        <button id="btnSchPrev" onclick="changeSchWeek(1)">◀ 과거</button>
-        <strong id="schWeekLabel">이번 주 시간표</strong>
-        <button id="btnSchNext" onclick="changeSchWeek(-1)">최신 ▶</button>
+  <div id="tab_upbo" class="tab-content">
+    <div id="upboWrapper">
+      <div class="section-title">⚡ 업보 현황</div>
+      <p id="upboDescDisplay" style="color:#666; font-size:0.9em; margin:-6px 0 16px; line-height:1.5;"></p>
+
+      <div class="controls" style="margin-bottom: 16px;">
+        <div class="form-row">
+          <input type="text" id="viewerSearch" class="search" placeholder="⌕ 닉네임 또는 아이디 검색...">
+          <select id="viewerSort" class="sort-select">
+            <option value="total">업보 많은 순</option>
+            <option value="name">닉네임순</option>
+            <option value="added">등록순</option>
+          </select>
+        </div>
       </div>
-      <div class="schedule-grid" id="scheduleGridViewer"></div>
+
+      <div class="upbo-summary">
+        <span>시청자 <b id="viewerCount">0</b>명</span>
+        <span>누적 업보 <b id="upboTotal">0</b>회</span>
+      </div>
+
+      <div class="viewer-grid" id="viewerGrid"></div>
     </div>
 
-    <div id="viewerLinksWrapper">
-      <div class="section-title">🔗 바로가기 링크</div>
-      <div id="viewerLinksContainer" class="links-container"></div>
+    <div id="upboOffNotice" style="display:none;" class="empty-state">
+      <div class="big">💬</div>
+      업보 페이지가 꺼져 있습니다.
+    </div>
+  </div>
+
+  <div id="tab_survey" class="tab-content">
+    <div id="surveyWrapper">
+      <div class="section-title">📣 설문 조사</div>
+      <p id="surveyDescDisplay" style="color:#666; font-size:0.9em; margin:-6px 0 16px; line-height:1.5;"></p>
+
+      <div class="genres" id="surveyFilter" style="margin-bottom: 18px;">
+        <button class="badge active" data-filter="all">전체</button>
+        <button class="badge" data-filter="open">진행</button>
+        <button class="badge" data-filter="closed">종료</button>
+      </div>
+
+      <div class="survey-list" id="surveyList"></div>
     </div>
 
-    <div id="viewerEmptyInfo" style="display:none; text-align:center; padding: 40px 20px; color:#888;">
-      현재 등록된 방송 정보가 없습니다. 💬
+    <div id="surveyOffNotice" style="display:none;" class="empty-state">
+      <div class="big">💬</div>
+      설문 페이지가 꺼져 있습니다.
     </div>
   </div>
 </div>
 
-<!-- 모달 영역 생략 없이 전부 포함 -->
 <div class="modal-overlay" id="lyricsModal" onclick="closeModal('lyricsModal', event)">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 class="modal-title" id="lyricsModalTitle">곡 제목</h3>
@@ -437,11 +521,41 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="upboModal" onclick="closeModal('upboModal', event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-head" id="upboModalHead"></div>
+    <div class="modal-scroll" id="upboModalBody"></div>
+    <div id="upboModalAdmin" style="display:none;">
+      <button class="btn-small" style="width:100%; padding:8px; color:#e74c3c; border-color:#f5c6cb;" onclick="deleteCurrentViewer()">이 시청자 삭제하기</button>
+    </div>
+    <button class="action-btn" style="padding: 8px;" onclick="closeModal('upboModal')">닫기</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="surveyModal" onclick="closeModal('surveyModal', event)">
+  <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 420px;">
+    <h3 class="modal-title" id="surveyModalTitle">설문 제목</h3>
+    <div class="modal-scroll" id="surveyModalBody"></div>
+    <div id="surveyModalFooter"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="responseModal" onclick="closeModal('responseModal', event)">
+  <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 440px;">
+    <h3 class="modal-title" id="responseModalTitle">답변 모아보기</h3>
+    <div class="modal-scroll" id="responseModalBody"></div>
+    <div class="form-row">
+      <button class="btn-small" style="flex:1; padding:9px;" onclick="downloadResponsesCSV()">CSV로 내려받기</button>
+      <button class="action-btn" style="flex:1; padding:9px;" onclick="closeModal('responseModal')">닫기</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="editModal" onclick="closeModal('editModal', event)">
   <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 450px;">
     <h3 class="modal-title">곡 정보 및 앨범 자켓 수정</h3>
     <input type="hidden" id="editSongId">
-    <div class="form-group">
+    <div class="form-group" style="overflow-y:auto;">
       <div class="form-row">
         <input type="text" id="editTitle" placeholder="곡명">
         <input type="text" id="editArtist" placeholder="가수">
@@ -467,19 +581,19 @@
           <div style="grid-column: span 3; text-align: center; color: #888; font-size: 0.85em; padding: 15px;">버튼을 눌러 앨범 사진을 검색해보세요!</div>
         </div>
       </div>
-      
+
       <div class="lyrics-header" style="margin-top: 5px;">
         <span>📝 메모</span>
         <button type="button" class="btn-small" onclick="addMemoRow('editMemoList')">➕ 메모 칸 추가</button>
       </div>
       <div id="editMemoList" class="memo-list"></div>
-      
+
       <div class="lyrics-header" style="margin-top: 5px;">
         <span>📝 가사 수정</span>
         <button type="button" class="btn-small btn-lyrics" onclick="searchLyricsOnNaver('editTitle', 'editArtist')">🔍 네이버에서 찾기</button>
       </div>
       <textarea id="editLyrics" placeholder="가사를 입력하세요" style="min-height: 80px;"></textarea>
-      
+
       <button class="action-btn" onclick="saveEditedSong()">수정 완료</button>
       <button class="btn-small" onclick="closeModal('editModal')" style="padding: 10px;">취소</button>
     </div>
@@ -488,31 +602,21 @@
 
 <script>
   // ==========================================
-  // ★ 여기에 Firebase 코드를 붙여넣으세요 ★
+  // Firebase 설정
   // ==========================================
-const firebaseConfig = {
-  apiKey: "AIzaSyCohdyXRWJQI1Tx467vQ0qdfe8O-Ie4Bvg",
-  authDomain: "wm-music-book.firebaseapp.com",
-  databaseURL: "https://wm-music-book-default-rtdb.firebaseio.com/",
-  projectId: "wm-music-book",
-  storageBucket: "wm-music-book.firebasestorage.app",
-  messagingSenderId: "545753276095",
-  appId: "1:545753276095:web:22d3fb181e3701bef3300a"
-};
-  
+  const firebaseConfig = {
+    apiKey: "AIzaSyCohdyXRWJQI1Tx467vQ0qdfe8O-Ie4Bvg",
+    authDomain: "wm-music-book.firebaseapp.com",
+    databaseURL: "https://wm-music-book-default-rtdb.firebaseio.com/",
+    projectId: "wm-music-book",
+    storageBucket: "wm-music-book.firebasestorage.app",
+    messagingSenderId: "545753276095",
+    appId: "1:545753276095:web:22d3fb181e3701bef3300a"
+  };
+
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   // ==========================================
-
-  const defaultWeek = [
-      { day: '월', date: '', time: '20:00', content: '정규 방송', isOff: false },
-      { day: '화', date: '', time: '20:00', content: '정규 방송', isOff: false },
-      { day: '수', date: '', time: '', content: '휴방', isOff: true },
-      { day: '목', date: '', time: '20:00', content: '정규 방송', isOff: false },
-      { day: '금', date: '', time: '20:00', content: '시청자 참여', isOff: false },
-      { day: '토', date: '', time: '19:00', content: '종합 게임', isOff: false },
-      { day: '일', date: '', time: '', content: '휴방', isOff: true }
-  ];
 
   const defaultPageInfo = {
     icons: "♥ ♪ ♥",
@@ -521,37 +625,57 @@ const firebaseConfig = {
     primaryColor: "#ff85a2",
     bgColor: "#fff5f7",
     password: "12345",
-    useSchedule: true,
-    useLinks: true,
-    scheduleIconOn: "⏰",
-    scheduleIconOff: "💤",
-    links: [
-      { name: '📺 유튜브 바로가기', url: 'https://youtube.com' },
-      { name: '🔴 치지직 / 생방송 바로가기', url: 'https://chzzk.naver.com' }
-    ],
-    schedules: [defaultWeek]
+    useUpbo: true,
+    upboDesc: "업보를 기록해두는 곳이에요.",
+    useSurvey: true,
+    surveyDesc: "설문을 눌러 답변을 남겨주세요.",
+    avatarSource: "soop"
   };
-  
+
   let pageInfo = { ...defaultPageInfo };
   let songs = [];
-  
-  let currentUseSchedule = pageInfo.useSchedule;
-  let currentUseLinks = pageInfo.useLinks;
-  let currentViewWeekIndex = 0; 
+  let upboTypes = [];
+  let viewers = [];
+  let surveys = [];
+  let responses = {};
+
+  let currentUseUpbo = pageInfo.useUpbo;
+  let currentUseSurvey = pageInfo.useSurvey;
   let currentGenre = "all";
-  let currentSort = "default"; 
+  let currentSort = "default";
+  let currentViewerSort = "total";
+  let currentViewerId = null;
+  let currentSurveyFilter = "all";
+  let currentSurveyId = null;
+  let currentResponseSurveyId = null;
   let isInitialLoad = true;
   let isAdminAuthenticated = false;
 
+  const toArray = (v) => !v ? [] : (Array.isArray(v) ? v.filter(Boolean) : Object.values(v));
+
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function fmtDate(ms) {
+    if (!ms) return "";
+    const d = new Date(ms), p = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+
   db.ref('streamerData').on('value', (snapshot) => {
     const data = snapshot.val() || {};
-    
-    if (data.pageInfo) { pageInfo = { ...defaultPageInfo, ...data.pageInfo }; }
-    if (data.songs) { songs = Array.isArray(data.songs) ? data.songs : Object.values(data.songs); } 
-    else { songs = []; }
 
-    currentUseSchedule = pageInfo.useSchedule;
-    currentUseLinks = pageInfo.useLinks;
+    if (data.pageInfo) { pageInfo = { ...defaultPageInfo, ...data.pageInfo }; }
+    songs = toArray(data.songs);
+    upboTypes = toArray(data.upboTypes);
+    viewers = toArray(data.viewers);
+    surveys = toArray(data.surveys);
+
+    currentUseUpbo = pageInfo.useUpbo;
+    currentUseSurvey = pageInfo.useSurvey;
 
     if (isInitialLoad) {
       isInitialLoad = false;
@@ -559,15 +683,19 @@ const firebaseConfig = {
       document.getElementById('mainContainer').style.display = 'block';
 
       const urlParams = new URLSearchParams(window.location.search);
-      const isAdminReq = urlParams.get('admin') === 'true';
-
-      if (isAdminReq) {
+      if (urlParams.get('admin') === 'true') {
         const passwordInput = prompt("관리자 비밀번호를 입력하세요\n(초기 비밀번호: 12345):");
-        if (passwordInput === pageInfo.password) { 
+        if (passwordInput === pageInfo.password) {
           isAdminAuthenticated = true;
           document.getElementById('adminBox').style.display = 'block';
+          db.ref('streamerData/responses').on('value', (snap) => {
+            responses = snap.val() || {};
+            renderAdminSurveys();
+            renderSurveys();
+            if (currentResponseSurveyId) openResponses(currentResponseSurveyId, true);
+          });
         } else {
-          alert("비밀번호가 틀렸습니다! 일반 시청자 모드로 접속합니다.");
+          alert("비밀번호가 틀렸습니다. 일반 시청자 모드로 접속합니다.");
           window.history.replaceState({}, document.title, window.location.pathname);
         }
       }
@@ -575,11 +703,21 @@ const firebaseConfig = {
 
     renderPageInfo();
     renderSongs();
+    renderViewers();
+    renderSurveys();
+    if (currentViewerId) openViewerModal(currentViewerId, true);
   });
 
   function saveToFirebase() {
     db.ref('streamerData/pageInfo').set(pageInfo);
     db.ref('streamerData/songs').set(songs);
+  }
+  function saveUpboToFirebase() {
+    db.ref('streamerData/upboTypes').set(upboTypes);
+    db.ref('streamerData/viewers').set(viewers);
+  }
+  function saveSurveysToFirebase() {
+    db.ref('streamerData/surveys').set(surveys);
   }
 
   function switchTab(tabId) {
@@ -589,198 +727,528 @@ const firebaseConfig = {
     document.getElementById(`tab_${tabId}`).classList.add('active');
   }
 
-  function toggleFeature(feature) {
-    if (feature === 'schedule') {
-      currentUseSchedule = !currentUseSchedule;
-      const btn = document.getElementById('btnToggleSchedule');
-      btn.className = currentUseSchedule ? 'toggle-btn on' : 'toggle-btn';
-      btn.innerHTML = currentUseSchedule ? '✅ 시간표 표시 ON' : '❌ 시간표 표시 OFF';
-      document.getElementById('adminScheduleArea').style.display = currentUseSchedule ? 'block' : 'none';
-    } else if (feature === 'links') {
-      currentUseLinks = !currentUseLinks;
-      const btn = document.getElementById('btnToggleLinks');
-      btn.className = currentUseLinks ? 'toggle-btn on' : 'toggle-btn';
-      btn.innerHTML = currentUseLinks ? '✅ 링크 표시 ON' : '❌ 링크 표시 OFF';
-      document.getElementById('adminLinksArea').style.display = currentUseLinks ? 'block' : 'none';
-    }
+  // ===== 설문: 관리자 =====
+  function toggleSurvey() {
+    currentUseSurvey = !currentUseSurvey;
+    pageInfo.useSurvey = currentUseSurvey;
+    renderAdminSurveyToggle();
+    saveToFirebase();
+    renderSurveys();
   }
 
-  function addAdminLinkRow(name = "", url = "") {
-    const container = document.getElementById('adminLinksList');
+  function renderAdminSurveyToggle() {
+    const btn = document.getElementById('btnToggleSurvey');
+    btn.className = currentUseSurvey ? 'toggle-btn on' : 'toggle-btn';
+    btn.innerHTML = currentUseSurvey ? '✅ 설문 페이지 ON' : '❌ 설문 페이지 OFF';
+    document.getElementById('adminSurveyArea').style.display = currentUseSurvey ? 'block' : 'none';
+  }
+
+  function addQuestionRow(text = "") {
+    const container = document.getElementById('newQuestionList');
     const row = document.createElement("div");
-    row.className = "form-row memo-row link-row";
+    row.className = "form-row memo-row q-row";
     row.innerHTML = `
-      <input type="text" class="link-name" placeholder="표시할 이름 (예: 유튜브)" value="${name}" style="flex: 0.4;">
-      <input type="text" class="link-url" placeholder="URL 주소 (https://...)" value="${url}">
+      <input type="text" class="q-text" placeholder="질문 내용" value="${esc(text)}">
       <button type="button" class="btn-small" onclick="this.parentElement.remove()">❌</button>
     `;
     container.appendChild(row);
   }
 
-  function renderAdminInfoSettings() {
-    const btnSch = document.getElementById('btnToggleSchedule');
-    btnSch.className = currentUseSchedule ? 'toggle-btn on' : 'toggle-btn';
-    btnSch.innerHTML = currentUseSchedule ? '✅ 시간표 표시 ON' : '❌ 시간표 표시 OFF';
-    document.getElementById('adminScheduleArea').style.display = currentUseSchedule ? 'block' : 'none';
+  function createSurvey() {
+    const title = document.getElementById('newSurveyTitle').value.trim();
+    const desc = document.getElementById('newSurveyDesc').value.trim();
+    if (!title) { alert("설문 제목을 입력해주세요."); return; }
 
-    const btnLnk = document.getElementById('btnToggleLinks');
-    btnLnk.className = currentUseLinks ? 'toggle-btn on' : 'toggle-btn';
-    btnLnk.innerHTML = currentUseLinks ? '✅ 링크 표시 ON' : '❌ 링크 표시 OFF';
-    document.getElementById('adminLinksArea').style.display = currentUseLinks ? 'block' : 'none';
+    const questions = [];
+    document.querySelectorAll('#newQuestionList .q-row').forEach((row, i) => {
+      const text = row.querySelector('.q-text').value.trim();
+      if (text) questions.push({ id: "q" + (i + 1), text });
+    });
+    if (questions.length === 0) { alert("질문을 최소 1개 이상 입력해주세요."); return; }
 
-    document.getElementById('settingSchIconOn').value = pageInfo.scheduleIconOn || "⏰";
-    document.getElementById('settingSchIconOff').value = pageInfo.scheduleIconOff || "💤";
+    surveys.unshift({
+      id: "s" + Date.now() + Math.floor(Math.random() * 1000),
+      title, desc, questions, isOpen: true, createdAt: Date.now()
+    });
+    saveSurveysToFirebase();
 
-    const schContainer = document.getElementById('adminScheduleList');
-    if (schContainer) {
-      let html = '';
-      const days = ['월', '화', '수', '목', '금', '토', '일'];
-      const latestWeek = pageInfo.schedules[0] || defaultWeek;
-      
-      days.forEach((dayLabel, index) => {
-        let data = latestWeek[index] || { day: dayLabel, date: '', time: '', content: '', isOff: false };
-        html += `
-          <div class="form-row" style="background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
-            <span style="font-weight: 800; width: 25px; text-align: center; color: var(--primary);">${dayLabel}</span>
-            <input type="text" id="schDate_${index}" placeholder="날짜(예: 8/1)" value="${data.date || ''}" style="width: 70px; padding: 6px; font-size: 0.8em; text-align:center;">
-            <input type="text" id="schTime_${index}" placeholder="시간(예: 20:00)" value="${data.time || ''}" style="width: 85px; padding: 6px; font-size: 0.85em;">
-            <input type="text" id="schContent_${index}" placeholder="방송 내용" value="${data.content || ''}" style="flex: 1; padding: 6px; font-size: 0.85em;">
-            <label style="font-size: 0.85em; display: flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap;">
-              <input type="checkbox" id="schOff_${index}" ${data.isOff ? 'checked' : ''}> 휴방
-            </label>
+    document.getElementById('newSurveyTitle').value = "";
+    document.getElementById('newSurveyDesc').value = "";
+    document.getElementById('newQuestionList').innerHTML = "";
+    addQuestionRow();
+    showToast("설문을 등록했습니다");
+  }
+
+  function toggleSurveyOpen(sid) {
+    const s = surveys.find(x => x.id === sid);
+    if (!s) return;
+    s.isOpen = !s.isOpen;
+    saveSurveysToFirebase();
+    showToast(s.isOpen ? "설문을 다시 열었습니다" : "설문을 종료했습니다");
+  }
+
+  function deleteSurvey(sid) {
+    const s = surveys.find(x => x.id === sid);
+    if (!s) return;
+    const n = Object.keys(responses[sid] || {}).length;
+    if (!confirm(`'${s.title}' 설문을 삭제할까요?${n ? `\n답변 ${n}개도 함께 사라집니다.` : ''}`)) return;
+    surveys = surveys.filter(x => x.id !== sid);
+    saveSurveysToFirebase();
+    db.ref('streamerData/responses/' + sid).remove();
+  }
+
+  function renderAdminSurveys() {
+    const box = document.getElementById('adminSurveyList');
+    if (!box) return;
+    if (surveys.length === 0) {
+      box.innerHTML = `<div style="font-size:0.85em; color:#aaa; padding:14px 0; text-align:center;">등록된 설문이 없습니다.</div>`;
+      return;
+    }
+    box.innerHTML = surveys.map(s => {
+      const n = Object.keys(responses[s.id] || {}).length;
+      return `<div class="admin-survey-row">
+        <span class="pill ${s.isOpen ? 'open' : 'closed'}">${s.isOpen ? '진행' : '종료'}</span>
+        <span class="t">${esc(s.title)}</span>
+        <button class="cnt-pill" onclick="openResponses('${esc(s.id)}')">답변 ${n}</button>
+        <button class="btn-small" onclick="toggleSurveyOpen('${esc(s.id)}')">${s.isOpen ? '종료' : '재개'}</button>
+        <button class="icon-btn" onclick="deleteSurvey('${esc(s.id)}')" title="삭제">❌</button>
+      </div>`;
+    }).join('');
+  }
+
+  function openResponses(sid, isRefresh) {
+    const s = surveys.find(x => x.id === sid);
+    if (!s) { currentResponseSurveyId = null; return; }
+    currentResponseSurveyId = sid;
+
+    const list = Object.entries(responses[sid] || {})
+      .map(([k, r]) => ({ key: k, ...r }))
+      .sort((a, b) => (b.at || 0) - (a.at || 0));
+
+    document.getElementById('responseModalTitle').textContent = `${s.title} · 답변 ${list.length}개`;
+    const body = document.getElementById('responseModalBody');
+
+    body.innerHTML = list.length === 0
+      ? `<div class="modal-empty">아직 들어온 답변이 없습니다.</div>`
+      : list.map(r => `
+        <div class="resp-card">
+          <div class="resp-top">
+            <span class="resp-nick">${esc(r.nickname || '익명')}</span>
+            <span class="resp-at">${fmtDate(r.at)}</span>
           </div>
-        `;
-      });
-      schContainer.innerHTML = html;
-    }
+          ${s.questions.map(q => `
+            <div class="resp-qa">
+              <div class="resp-q">${esc(q.text)}</div>
+              <div class="resp-a">${esc((r.answers && r.answers[q.id]) || '(무응답)')}</div>
+            </div>`).join('')}
+        </div>`).join('');
 
-    const linksContainer = document.getElementById('adminLinksList');
-    if (linksContainer) {
-      linksContainer.innerHTML = '';
-      pageInfo.links.forEach(link => addAdminLinkRow(link.name, link.url));
-      if (pageInfo.links.length === 0) addAdminLinkRow();
-    }
+    if (!isRefresh) document.getElementById('responseModal').style.display = 'flex';
   }
 
-  function changeSchWeek(dir) {
-    currentViewWeekIndex += dir;
-    if (currentViewWeekIndex < 0) currentViewWeekIndex = 0;
-    if (currentViewWeekIndex >= pageInfo.schedules.length) currentViewWeekIndex = pageInfo.schedules.length - 1;
-    renderViewerInfo();
+  function downloadResponsesCSV() {
+    const s = surveys.find(x => x.id === currentResponseSurveyId);
+    if (!s) return;
+    const list = Object.values(responses[s.id] || {}).sort((a, b) => (a.at || 0) - (b.at || 0));
+    if (list.length === 0) { alert("내려받을 답변이 없습니다."); return; }
+
+    const q = v => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`;
+    const header = ['닉네임', '작성시각', ...s.questions.map(x => x.text)].map(q).join(',');
+    const rows = list.map(r => [
+      r.nickname || '익명', fmtDate(r.at),
+      ...s.questions.map(x => (r.answers && r.answers[x.id]) || '')
+    ].map(q).join(','));
+
+    const blob = new Blob(["\uFEFF" + [header, ...rows].join("\r\n")], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${s.title}_답변.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
   }
 
-  function renderViewerInfo() {
-    document.getElementById('viewerScheduleWrapper').style.display = pageInfo.useSchedule ? 'block' : 'none';
-    document.getElementById('viewerLinksWrapper').style.display = pageInfo.useLinks ? 'block' : 'none';
-    document.getElementById('viewerEmptyInfo').style.display = (!pageInfo.useSchedule && !pageInfo.useLinks) ? 'block' : 'none';
+  // ===== 설문: 시청자 =====
+  const doneKey = sid => 'survey_done_' + sid;
+  const hasSubmitted = sid => { try { return !!localStorage.getItem(doneKey(sid)); } catch (e) { return false; } };
 
-    if(pageInfo.useLinks) {
-      const linksContainer = document.getElementById('viewerLinksContainer');
-      let linksHtml = '';
-      if(pageInfo.links && pageInfo.links.length > 0) {
-        pageInfo.links.forEach(link => {
-          if(link.name && link.url) {
-            let safeUrl = link.url.startsWith('http') ? link.url : 'https://' + link.url;
-            linksHtml += `<a href="${safeUrl}" target="_blank" class="link-card">${link.name}</a>`;
-          }
-        });
-      } else {
-        linksHtml = '<div style="text-align:center; color:#888; padding:10px;">등록된 링크가 없습니다.</div>';
-      }
-      linksContainer.innerHTML = linksHtml;
+  function renderSurveys() {
+    const on = !!pageInfo.useSurvey;
+    document.getElementById('surveyWrapper').style.display = on ? 'block' : 'none';
+    document.getElementById('surveyOffNotice').style.display = on ? 'none' : 'block';
+    document.getElementById('surveyDescDisplay').textContent = pageInfo.surveyDesc || "";
+    if (isAdminAuthenticated) renderAdminSurveys();
+    if (!on) return;
+
+    let list = surveys.slice();
+    if (currentSurveyFilter === 'open') list = list.filter(s => s.isOpen);
+    if (currentSurveyFilter === 'closed') list = list.filter(s => !s.isOpen);
+    list.sort((a, b) => (b.isOpen === a.isOpen) ? (b.createdAt || 0) - (a.createdAt || 0) : (b.isOpen ? 1 : -1));
+
+    const box = document.getElementById('surveyList');
+    if (list.length === 0) {
+      box.innerHTML = `<div class="empty-state"><div class="big">📣</div>${surveys.length === 0 ? '아직 등록된 설문이 없습니다.' : '해당하는 설문이 없습니다.'}</div>`;
+      return;
     }
 
-    if(pageInfo.useSchedule) {
-      document.getElementById('btnSchPrev').disabled = (currentViewWeekIndex >= pageInfo.schedules.length - 1);
-      document.getElementById('btnSchNext').disabled = (currentViewWeekIndex === 0);
-      document.getElementById('schWeekLabel').textContent = currentViewWeekIndex === 0 ? "이번 주 시간표" : `${currentViewWeekIndex}주 전 시간표`;
-
-      const schContainer = document.getElementById('scheduleGridViewer');
-      let schHtml = '';
-      let iconOn = pageInfo.scheduleIconOn || "⏰";
-      let iconOff = pageInfo.scheduleIconOff || "💤";
-
-      const targetWeek = pageInfo.schedules[currentViewWeekIndex] || defaultWeek;
-      const days = ['월', '화', '수', '목', '금', '토', '일'];
-      
-      days.forEach((dayLabel, index) => {
-        let data = targetWeek[index] || { day: dayLabel, date: '', time: '', content: '', isOff: false };
-        let dateHtml = data.date ? `<span class="s-date">${data.date}</span>` : '';
-        
-        if (data.isOff) {
-          schHtml += `
-            <div class="schedule-card off">
-              <div class="s-day">${dayLabel} ${dateHtml}</div>
-              <div class="s-content" style="margin-top:auto; font-weight:bold; color:#999; font-size:1em;">${iconOff}<br>휴방</div>
-            </div>
-          `;
-        } else {
-          schHtml += `
-            <div class="schedule-card">
-              <div class="s-day">${dayLabel} ${dateHtml}</div>
-              <div class="s-time">${iconOn} ${data.time || '미정'}</div>
-              <div class="s-content">${data.content || '방송'}</div>
-            </div>
-          `;
-        }
-      });
-      schContainer.innerHTML = schHtml;
-    }
+    box.innerHTML = list.map(s => {
+      const n = isAdminAuthenticated ? Object.keys(responses[s.id] || {}).length : null;
+      return `<div class="survey-item ${s.isOpen ? '' : 'closed'}" role="button" tabindex="0" data-survey-id="${esc(s.id)}">
+        <span class="st">${esc(s.title)}</span>
+        ${n !== null ? `<span class="sm">답변 ${n}</span>` : ''}
+        ${!s.isOpen ? '<span class="sm">종료</span>' : (hasSubmitted(s.id) ? '<span class="done">참여함</span>' : '')}
+      </div>`;
+    }).join('');
   }
 
-  function saveInfoSettings(isNewWeek) {
-    pageInfo.useSchedule = currentUseSchedule;
-    pageInfo.useLinks = currentUseLinks;
+  function openSurvey(sid) {
+    const s = surveys.find(x => x.id === sid);
+    if (!s) return;
+    currentSurveyId = sid;
 
-    if (currentUseSchedule) {
-      pageInfo.scheduleIconOn = document.getElementById('settingSchIconOn').value.trim() || "⏰";
-      pageInfo.scheduleIconOff = document.getElementById('settingSchIconOff').value.trim() || "💤";
-      
-      const newWeek = [];
-      const days = ['월', '화', '수', '목', '금', '토', '일'];
-      for(let i=0; i<7; i++) {
-        newWeek.push({
-          day: days[i],
-          date: document.getElementById(`schDate_${i}`).value.trim(),
-          time: document.getElementById(`schTime_${i}`).value.trim(),
-          content: document.getElementById(`schContent_${i}`).value.trim(),
-          isOff: document.getElementById(`schOff_${i}`).checked
-        });
-      }
+    document.getElementById('surveyModalTitle').textContent = s.title;
+    const body = document.getElementById('surveyModalBody');
+    const footer = document.getElementById('surveyModalFooter');
 
-      if (isNewWeek) {
-        pageInfo.schedules.unshift(newWeek);
-        if (pageInfo.schedules.length > 6) pageInfo.schedules.length = 6; 
-      } else {
-        pageInfo.schedules[0] = newWeek;
-      }
+    if (!s.isOpen) {
+      body.innerHTML = `${s.desc ? `<p style="font-size:0.88em; color:#666; line-height:1.5; margin:0 0 14px;">${esc(s.desc)}</p>` : ''}
+        <div class="modal-empty">종료된 설문입니다.<br>더 이상 답변을 받지 않아요.</div>`;
+      footer.innerHTML = `<button class="action-btn" style="padding:9px;" onclick="closeModal('surveyModal')">닫기</button>`;
+      document.getElementById('surveyModal').style.display = 'flex';
+      return;
     }
 
-    if (currentUseLinks) {
-      const newLinks = [];
-      document.querySelectorAll('.link-row').forEach(row => {
-        const name = row.querySelector('.link-name').value.trim();
-        const url = row.querySelector('.link-url').value.trim();
-        if (name || url) { newLinks.push({ name, url }); }
-      });
-      pageInfo.links = newLinks;
+    if (hasSubmitted(sid)) {
+      body.innerHTML = `<div class="modal-empty">이미 참여한 설문입니다.<br>소중한 답변 고마워요 ♡</div>`;
+      footer.innerHTML = `<button class="action-btn" style="padding:9px;" onclick="closeModal('surveyModal')">닫기</button>`;
+      document.getElementById('surveyModal').style.display = 'flex';
+      return;
     }
 
-    currentViewWeekIndex = 0; 
-    saveToFirebase(); 
-    
-    if(currentUseSchedule && isNewWeek) {
-      alert("새로운 주차 시간표가 등록되어 기존 시간표는 과거 기록으로 밀려났습니다!");
-    } else {
-      alert("방송 정보 설정이 성공적으로 저장되었습니다!");
-    }
+    body.innerHTML = `
+      ${s.desc ? `<p style="font-size:0.88em; color:#666; line-height:1.5; margin:0 0 14px;">${esc(s.desc)}</p>` : ''}
+      <div class="q-block">
+        <label class="q-label" for="svNickname">닉네임</label>
+        <input type="text" id="svNickname" maxlength="20" placeholder="닉네임을 적어주세요">
+        <div class="field-error" id="err-nick">닉네임을 먼저 적어주세요</div>
+      </div>
+      <div style="border-top:1px solid #f0f0f0; margin:16px 0;"></div>
+      ${s.questions.map((q, i) => `
+        <div class="q-block">
+          <label class="q-label" for="sv-${esc(q.id)}">Q${i + 1}. ${esc(q.text)}</label>
+          <textarea id="sv-${esc(q.id)}" maxlength="1000" placeholder="자유롭게 적어주세요"></textarea>
+        </div>`).join('')}
+      <div class="field-error" id="err-answer" style="margin-top:-6px;">답변을 하나 이상 적어주세요</div>
+    `;
+    footer.innerHTML = `
+      <button class="action-btn" id="svSubmit" style="padding:10px;" onclick="submitSurvey()" disabled>등록</button>
+      <button class="btn-small" style="width:100%; padding:9px; margin-top:8px;" onclick="closeModal('surveyModal')">취소</button>`;
+
+    body.addEventListener('input', () => {
+      document.getElementById('err-nick').style.display = 'none';
+      document.getElementById('err-answer').style.display = 'none';
+      updateSubmitState();
+    });
+    updateSubmitState();
+
+    document.getElementById('surveyModal').style.display = 'flex';
   }
 
+  function updateSubmitState() {
+    const btn = document.getElementById('svSubmit');
+    const s = surveys.find(x => x.id === currentSurveyId);
+    if (!btn || !s) return;
+
+    const nickEl = document.getElementById('svNickname');
+    const hasNick = !!(nickEl && nickEl.value.trim());
+    const hasAnswer = s.questions.some(q => {
+      const el = document.getElementById('sv-' + q.id);
+      return el && el.value.trim();
+    });
+    btn.disabled = !(hasNick && hasAnswer);
+  }
+
+  function submitSurvey() {
+    const s = surveys.find(x => x.id === currentSurveyId);
+    if (!s) return;
+
+    const nickname = document.getElementById('svNickname').value.trim();
+    if (!nickname) {
+      document.getElementById('err-nick').style.display = 'block';
+      document.getElementById('svNickname').focus();
+      return;
+    }
+
+    const answers = {};
+    let filled = 0;
+    s.questions.forEach(q => {
+      const v = document.getElementById('sv-' + q.id).value.trim();
+      if (v) { answers[q.id] = v; filled++; }
+    });
+    if (filled === 0) {
+      document.getElementById('err-answer').style.display = 'block';
+      return;
+    }
+
+    db.ref('streamerData/responses/' + s.id).push({ nickname, answers, at: Date.now() })
+      .then(() => {
+        try { localStorage.setItem(doneKey(s.id), '1'); } catch (e) {}
+        closeModal('surveyModal');
+        renderSurveys();
+        showToast("답변을 남겼습니다. 고마워요 ♡");
+      })
+      .catch(() => alert("답변 저장에 실패했습니다. 잠시 후 다시 시도해주세요."));
+  }
+
+  document.getElementById('surveyList').addEventListener('click', (e) => {
+    const item = e.target.closest('.survey-item');
+    if (item) openSurvey(item.dataset.surveyId);
+  });
+  document.getElementById('surveyList').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const item = e.target.closest('.survey-item');
+    if (item) { e.preventDefault(); openSurvey(item.dataset.surveyId); }
+  });
+  document.getElementById('surveyFilter').addEventListener('click', (e) => {
+    if (e.target.tagName !== 'BUTTON') return;
+    document.querySelectorAll('#surveyFilter .badge').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    currentSurveyFilter = e.target.dataset.filter;
+    renderSurveys();
+  });
+
+  // ===== 업보: 관리자 =====
+  function toggleUpbo() {
+    currentUseUpbo = !currentUseUpbo;
+    pageInfo.useUpbo = currentUseUpbo;
+    renderAdminUpboToggle();
+    saveToFirebase();
+    renderViewers();
+  }
+
+  function renderAdminUpboToggle() {
+    const btn = document.getElementById('btnToggleUpbo');
+    btn.className = currentUseUpbo ? 'toggle-btn on' : 'toggle-btn';
+    btn.innerHTML = currentUseUpbo ? '✅ 업보 페이지 ON' : '❌ 업보 페이지 OFF';
+    document.getElementById('adminUpboArea').style.display = currentUseUpbo ? 'block' : 'none';
+  }
+
+  function addUpboTypeRow(id = "", name = "", isEvent = false) {
+    const container = document.getElementById('adminTypeList');
+    const row = document.createElement("div");
+    row.className = "form-row memo-row type-row";
+    row.dataset.typeId = id || ("t" + Date.now() + Math.floor(Math.random() * 1000));
+    row.innerHTML = `
+      <input type="text" class="type-name" placeholder="업보 이름 (예: 지각)" value="${esc(name)}">
+      <label style="font-size:0.85em; display:flex; align-items:center; gap:4px; cursor:pointer; white-space:nowrap; color:#555;">
+        <input type="checkbox" class="type-event" ${isEvent ? 'checked' : ''}> 이벤트
+      </label>
+      <button type="button" class="btn-small" onclick="this.parentElement.remove()">❌</button>
+    `;
+    container.appendChild(row);
+  }
+
+  function renderAdminUpbo() {
+    renderAdminUpboToggle();
+    const container = document.getElementById('adminTypeList');
+    container.innerHTML = '';
+    upboTypes.forEach(t => addUpboTypeRow(t.id, t.name, t.isEvent));
+    if (upboTypes.length === 0) addUpboTypeRow();
+    document.getElementById('settingAvatarSource').value = pageInfo.avatarSource || "soop";
+  }
+
+  function saveUpboTypes() {
+    const rows = document.querySelectorAll('#adminTypeList .type-row');
+    const newTypes = [];
+    rows.forEach(row => {
+      const name = row.querySelector('.type-name').value.trim();
+      if (!name) return;
+      newTypes.push({ id: row.dataset.typeId, name, isEvent: row.querySelector('.type-event').checked });
+    });
+
+    const keptIds = new Set(newTypes.map(t => t.id));
+    viewers.forEach(v => {
+      if (!v.counts) return;
+      Object.keys(v.counts).forEach(k => { if (!keptIds.has(k)) delete v.counts[k]; });
+    });
+
+    upboTypes = newTypes;
+    pageInfo.avatarSource = document.getElementById('settingAvatarSource').value;
+    saveUpboToFirebase();
+    saveToFirebase();
+    showToast("업보 종류를 저장했습니다");
+  }
+
+  function addViewer() {
+    const nickname = document.getElementById('newViewerNick').value.trim();
+    const platformId = document.getElementById('newViewerId').value.trim();
+    const avatar = document.getElementById('newViewerAvatar').value.trim();
+
+    if (!nickname) { alert("닉네임을 입력해주세요."); return; }
+    if (viewers.some(v => v.nickname === nickname)) { alert("같은 닉네임의 시청자가 이미 있습니다."); return; }
+
+    viewers.push({
+      id: "v" + Date.now() + Math.floor(Math.random() * 1000),
+      nickname, platformId, avatar, counts: {}
+    });
+    saveUpboToFirebase();
+
+    document.getElementById('newViewerNick').value = "";
+    document.getElementById('newViewerId').value = "";
+    document.getElementById('newViewerAvatar').value = "";
+    showToast(`'${nickname}' 웅이를 추가했습니다`);
+  }
+
+  function deleteCurrentViewer() {
+    const v = viewers.find(x => x.id === currentViewerId);
+    if (!v) return;
+    if (!confirm(`'${v.nickname}' 시청자를 삭제할까요? 업보 기록도 함께 사라집니다.`)) return;
+    viewers = viewers.filter(x => x.id !== currentViewerId);
+    currentViewerId = null;
+    saveUpboToFirebase();
+    closeModal('upboModal');
+  }
+
+  let upboSaveTimer = null;
+  function stepCount(viewerId, typeId, delta) {
+    const v = viewers.find(x => x.id === viewerId);
+    if (!v) return;
+    if (!v.counts) v.counts = {};
+    const next = (v.counts[typeId] || 0) + delta;
+    v.counts[typeId] = next < 0 ? 0 : next;
+
+    renderUpboRows(v);
+    renderViewers();
+
+    clearTimeout(upboSaveTimer);
+    upboSaveTimer = setTimeout(() => { db.ref('streamerData/viewers').set(viewers); }, 700);
+  }
+
+  // ===== 업보: 표시 =====
+  function avatarUrl(v) {
+    if (v.avatar) return v.avatar;
+    const src = pageInfo.avatarSource || "soop";
+    const id = (v.platformId || "").trim().toLowerCase();
+    if (src === "soop" && id.length >= 2) {
+      return `https://profile.img.sooplive.co.kr/LOGO/${id.slice(0, 2)}/${id}/${id}.jpg`;
+    }
+    return null;
+  }
+
+  function avatarHTML(v, cls) {
+    const url = avatarUrl(v);
+    const ini = esc((v.nickname || "?").charAt(0));
+    if (!url) return `<div class="${cls}-fb">${ini}</div>`;
+    return `<img class="${cls}" src="${esc(url)}" alt="${ini}" referrerpolicy="no-referrer"
+      onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'${cls}-fb',textContent:this.alt||'♪'}))">`;
+  }
+
+  function viewerTotal(v) {
+    if (!v.counts) return 0;
+    return Object.values(v.counts).reduce((s, n) => s + (n > 0 ? n : 0), 0);
+  }
+
+  function renderViewers() {
+    const on = !!pageInfo.useUpbo;
+    document.getElementById('upboWrapper').style.display = on ? 'block' : 'none';
+    document.getElementById('upboOffNotice').style.display = on ? 'none' : 'block';
+    document.getElementById('upboDescDisplay').textContent = pageInfo.upboDesc || "";
+    if (!on) return;
+
+    const q = document.getElementById('viewerSearch').value.trim().toLowerCase();
+    let list = viewers.filter(v =>
+      (v.nickname || "").toLowerCase().includes(q) || (v.platformId || "").toLowerCase().includes(q)
+    );
+
+    if (currentViewerSort === "total") {
+      list.sort((a, b) => viewerTotal(b) - viewerTotal(a) || customStringCompare(a.nickname, b.nickname));
+    } else if (currentViewerSort === "name") {
+      list.sort((a, b) => customStringCompare(a.nickname, b.nickname));
+    }
+
+    document.getElementById('viewerCount').textContent = viewers.length;
+    document.getElementById('upboTotal').textContent = viewers.reduce((s, v) => s + viewerTotal(v), 0);
+
+    const grid = document.getElementById('viewerGrid');
+    if (list.length === 0) {
+      grid.innerHTML = `<div style="grid-column:1/-1;" class="empty-state">
+        <div class="big">⚡</div>${viewers.length === 0 ? '아직 등록된 시청자가 없습니다.' : '검색 결과가 없습니다.'}</div>`;
+      return;
+    }
+
+    grid.innerHTML = list.map(v => `
+      <div class="viewer-card" role="button" tabindex="0" data-viewer-id="${esc(v.id)}">
+        ${avatarHTML(v, 'viewer-av')}
+        <div class="viewer-nick">${esc(v.nickname)}</div>
+        <div class="viewer-id">${v.platformId ? esc(v.platformId) : '&nbsp;'}</div>
+        <span class="viewer-total">업보 ${viewerTotal(v)}</span>
+      </div>
+    `).join('');
+  }
+
+  function renderUpboRows(v) {
+    const body = document.getElementById('upboModalBody');
+    const counts = v.counts || {};
+    const visible = isAdminAuthenticated ? upboTypes : upboTypes.filter(t => (counts[t.id] || 0) > 0);
+
+    if (visible.length === 0) {
+      body.innerHTML = `<div class="modal-empty">${upboTypes.length === 0 ? '업보 종류가 아직 등록되지 않았습니다.' : '아직 쌓인 업보가 없습니다 ♡'}</div>`;
+      return;
+    }
+
+    body.innerHTML = visible.map(t => {
+      const n = counts[t.id] || 0;
+      const controls = isAdminAuthenticated
+        ? `<button class="step-btn" onclick="stepCount('${esc(v.id)}','${esc(t.id)}',-1)" aria-label="빼기">−</button>
+           <span class="ct">${n}</span>
+           <button class="step-btn" onclick="stepCount('${esc(v.id)}','${esc(t.id)}',1)" aria-label="더하기">+</button>`
+        : `<span class="ct">×${n}</span>`;
+      return `<div class="upbo-row">
+        <span class="nm">${esc(t.name)}</span>
+        ${t.isEvent ? '<span class="ev">이벤트</span>' : ''}
+        ${controls}
+      </div>`;
+    }).join('');
+  }
+
+  function openViewerModal(viewerId, isRefresh) {
+    const v = viewers.find(x => x.id === viewerId);
+    if (!v) { currentViewerId = null; return; }
+    currentViewerId = viewerId;
+
+    document.getElementById('upboModalHead').innerHTML = `
+      ${avatarHTML(v, 'modal-av')}
+      <div>
+        <div class="modal-title">${esc(v.nickname)}</div>
+        ${v.platformId ? `<div style="font-size:0.8em; color:#aaa;">${esc(v.platformId)}</div>` : ''}
+        <div style="font-size:0.85em; color:#888; margin-top:2px;">누적 업보 <b style="color:var(--primary);">${viewerTotal(v)}</b>회</div>
+      </div>`;
+
+    renderUpboRows(v);
+    document.getElementById('upboModalAdmin').style.display = isAdminAuthenticated ? 'block' : 'none';
+    if (!isRefresh) document.getElementById('upboModal').style.display = 'flex';
+  }
+
+  document.getElementById('viewerGrid').addEventListener('click', (e) => {
+    const card = e.target.closest('.viewer-card');
+    if (card) openViewerModal(card.dataset.viewerId);
+  });
+  document.getElementById('viewerGrid').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const card = e.target.closest('.viewer-card');
+    if (card) { e.preventDefault(); openViewerModal(card.dataset.viewerId); }
+  });
+  document.getElementById('viewerSearch').addEventListener('input', renderViewers);
+  document.getElementById('viewerSort').addEventListener('change', (e) => {
+    currentViewerSort = e.target.value;
+    renderViewers();
+  });
+
+  // ===== 페이지 설정 =====
   function renderPageInfo() {
     document.getElementById('pageIconsDisplay').textContent = pageInfo.icons;
     document.getElementById('pageTitleDisplay').textContent = pageInfo.title;
     document.getElementById('pageDescDisplay').textContent = pageInfo.desc;
-    
+
     document.documentElement.style.setProperty('--primary', pageInfo.primaryColor);
     document.documentElement.style.setProperty('--bg', pageInfo.bgColor);
 
@@ -788,32 +1256,38 @@ const firebaseConfig = {
       document.getElementById('settingIcons').value = pageInfo.icons;
       document.getElementById('settingTitle').value = pageInfo.title;
       document.getElementById('settingDesc').value = pageInfo.desc;
+      document.getElementById('settingUpboDesc').value = pageInfo.upboDesc || "";
+      document.getElementById('settingSurveyDesc').value = pageInfo.surveyDesc || "";
       document.getElementById('settingPrimaryColor').value = pageInfo.primaryColor;
       document.getElementById('settingBgColor').value = pageInfo.bgColor;
       document.getElementById('settingPassword').value = pageInfo.password;
-      renderAdminInfoSettings(); 
+      renderAdminUpbo();
+      renderAdminSurveyToggle();
+      if (document.querySelectorAll('#newQuestionList .q-row').length === 0) addQuestionRow();
     }
-    renderViewerInfo();
   }
 
   function savePageSettings() {
     pageInfo.icons = document.getElementById('settingIcons').value.trim();
     pageInfo.title = document.getElementById('settingTitle').value.trim();
     pageInfo.desc = document.getElementById('settingDesc').value.trim();
+    pageInfo.upboDesc = document.getElementById('settingUpboDesc').value.trim();
+    pageInfo.surveyDesc = document.getElementById('settingSurveyDesc').value.trim();
     pageInfo.primaryColor = document.getElementById('settingPrimaryColor').value;
     pageInfo.bgColor = document.getElementById('settingBgColor').value;
-    
+
     const newPassword = document.getElementById('settingPassword').value.trim();
     if (newPassword !== "") { pageInfo.password = newPassword; }
-    
+
     saveToFirebase();
-    alert("디자인과 설정이 성공적으로 변경되었습니다!");
+    showToast("설정을 저장했습니다");
   }
 
+  // ===== 노래책 =====
   function searchLyricsOnNaver(titleId, artistId) {
     const title = document.getElementById(titleId).value.trim();
     const artist = document.getElementById(artistId).value.trim();
-    if (!title || !artist) { alert("가사를 검색하려면 곡명과 가수를 먼저 입력해주세요!"); return; }
+    if (!title || !artist) { alert("가사를 검색하려면 곡명과 가수를 먼저 입력해주세요."); return; }
     const query = encodeURIComponent(`${artist} ${title} 가사`);
     window.open(`https://search.naver.com/search.naver?query=${query}`, "_blank");
   }
@@ -823,8 +1297,8 @@ const firebaseConfig = {
     const row = document.createElement("div");
     row.className = "form-row memo-row";
     row.innerHTML = `
-      <input type="text" class="memo-label" placeholder="메모 이름" value="${label}">
-      <input type="text" class="memo-content" placeholder="메모 내용" value="${content}">
+      <input type="text" class="memo-label" placeholder="메모 이름" value="${esc(label)}">
+      <input type="text" class="memo-content" placeholder="메모 내용" value="${esc(content)}">
       <button type="button" class="btn-small" onclick="this.parentElement.remove()">❌</button>
     `;
     container.appendChild(row);
@@ -861,7 +1335,7 @@ const firebaseConfig = {
     const artist = document.getElementById("newArtist").value.trim();
     const container = document.getElementById("newArtOptionsContainer");
 
-    if (!title || !artist) { alert("곡명과 가수를 먼저 입력해주세요!"); return; }
+    if (!title || !artist) { alert("곡명과 가수를 먼저 입력해주세요."); return; }
 
     container.innerHTML = `<div style="grid-column: span 3; text-align: center; color: #888; font-size: 0.85em; padding: 10px;">검색 중... ⏳</div>`;
     const urls = await fetchAlbumArtOptions(title, artist);
@@ -876,7 +1350,7 @@ const firebaseConfig = {
     urls.forEach((url, index) => {
       let isSelected = (currentSelectedUrl === url || (index === 0 && !currentSelectedUrl)) ? 'selected' : '';
       if (index === 0 && !currentSelectedUrl) { document.getElementById("newAlbumArtUrl").value = url; }
-      html += `<div class="art-option ${isSelected}" onclick="selectNewArtOption(this, '${url}')"><img src="${url}" alt="자켓후보"></div>`;
+      html += `<div class="art-option ${isSelected}" onclick="selectNewArtOption(this, '${esc(url)}')"><img src="${esc(url)}" alt="자켓후보"></div>`;
     });
     container.innerHTML = html;
   }
@@ -892,7 +1366,7 @@ const firebaseConfig = {
     const artist = document.getElementById("editArtist").value.trim();
     const container = document.getElementById("editArtOptionsContainer");
 
-    if (!title || !artist) { alert("곡명과 가수를 먼저 입력해주세요!"); return; }
+    if (!title || !artist) { alert("곡명과 가수를 먼저 입력해주세요."); return; }
 
     container.innerHTML = `<div style="grid-column: span 3; text-align: center; color: #888; font-size: 0.85em; padding: 15px;">검색 중... ⏳</div>`;
     const urls = await fetchAlbumArtOptions(title, artist);
@@ -906,7 +1380,7 @@ const firebaseConfig = {
     let html = "";
     urls.forEach((url) => {
       let isSelected = currentSelectedUrl === url ? 'selected' : '';
-      html += `<div class="art-option ${isSelected}" onclick="selectEditArtOption(this, '${url}')"><img src="${url}" alt="자켓후보"></div>`;
+      html += `<div class="art-option ${isSelected}" onclick="selectEditArtOption(this, '${esc(url)}')"><img src="${esc(url)}" alt="자켓후보"></div>`;
     });
     container.innerHTML = html;
   }
@@ -920,7 +1394,7 @@ const firebaseConfig = {
   async function importCSV() {
     const fileInput = document.getElementById('csvFileInput');
     const file = fileInput.files[0];
-    if (!file) { alert("파일을 먼저 선택해주세요!"); return; }
+    if (!file) { alert("파일을 먼저 선택해주세요."); return; }
 
     Papa.parse(file, {
       header: true, skipEmptyLines: true,
@@ -932,7 +1406,8 @@ const firebaseConfig = {
           if (title && artist) {
             const genre = row['장르'] || "기타";
             let difficulty = parseInt(row['난이도']) || 3;
-            if (difficulty < 1) difficulty = 1; if (difficulty > 5) difficulty = 5;
+            if (difficulty < 1) difficulty = 1;
+            if (difficulty > 5) difficulty = 5;
 
             const lyrics = row['가사'] || "";
             const memoText = row['메모'] || "";
@@ -943,14 +1418,14 @@ const firebaseConfig = {
 
             songs.unshift({
               id: Date.now() + Math.random(), title: title.trim(), artist: artist.trim(),
-              genre: genre.trim(), difficulty: difficulty, lyrics: lyrics.trim(), memos: memos, albumArt: albumArtUrl
+              genre: genre.trim(), difficulty, lyrics: lyrics.trim(), memos, albumArt: albumArtUrl
             });
             addedCount++;
           }
         }
         saveToFirebase();
-        alert(`성공적으로 ${addedCount}곡이 추가 및 앨범 자켓 연동되었습니다! 🎉`);
-        fileInput.value = ""; 
+        alert(`${addedCount}곡을 추가하고 앨범 자켓을 연동했습니다. 🎉`);
+        fileInput.value = "";
       },
       error: function() { alert("파일을 읽는 중 오류가 발생했습니다."); }
     });
@@ -959,7 +1434,7 @@ const firebaseConfig = {
   function generateGenreButtons() {
     const container = document.getElementById("genreContainer");
     container.innerHTML = `<button class="badge ${currentGenre === 'all' ? 'active' : ''}" data-genre="all">전체</button>`;
-    
+
     const allGenres = songs.map(song => song.genre ? song.genre.trim() : "기타");
     const uniqueGenres = [...new Set(allGenres)].filter(g => g !== "");
 
@@ -983,22 +1458,15 @@ const firebaseConfig = {
   function customStringCompare(str1, str2) {
     str1 = (str1 || "").replace(/\s+/g, '').toLowerCase();
     str2 = (str2 || "").replace(/\s+/g, '').toLowerCase();
-    
+
     const minLen = Math.min(str1.length, str2.length);
-    for(let i = 0; i < minLen; i++) {
-      let c1 = str1[i];
-      let c2 = str2[i];
-      let g1 = getSortGroup(c1);
-      let g2 = getSortGroup(c2);
-      
-      if (g1 !== g2) {
-        return g1 - g2; 
-      }
-      if (c1 !== c2) {
-        return c1.localeCompare(c2, 'ko-KR'); 
-      }
+    for (let i = 0; i < minLen; i++) {
+      let c1 = str1[i], c2 = str2[i];
+      let g1 = getSortGroup(c1), g2 = getSortGroup(c2);
+      if (g1 !== g2) return g1 - g2;
+      if (c1 !== c2) return c1.localeCompare(c2, 'ko-KR');
     }
-    return str1.length - str2.length; 
+    return str1.length - str2.length;
   }
 
   function renderSongs() {
@@ -1008,7 +1476,7 @@ const firebaseConfig = {
     let filteredSongs = songs.filter(song => {
       const songGenre = song.genre ? song.genre.trim() : "기타";
       const matchGenre = currentGenre === "all" || songGenre === currentGenre;
-      const matchSearch = song.title.toLowerCase().includes(searchText) || song.artist.toLowerCase().includes(searchText);
+      const matchSearch = (song.title || "").toLowerCase().includes(searchText) || (song.artist || "").toLowerCase().includes(searchText);
       return matchGenre && matchSearch;
     });
 
@@ -1027,18 +1495,18 @@ const firebaseConfig = {
     filteredSongs.forEach(song => {
       const li = document.createElement("li");
       li.className = "song-item";
-      
       li.onclick = (e) => copySongInfo(e, song.id);
-      
+
       const songGenre = song.genre ? song.genre.trim() : "기타";
-      let rightButtons = `<span class="song-genre">${songGenre}</span>`;
-      
+      let rightButtons = `<span class="song-genre">${esc(songGenre)}</span>`;
+
       const hasLyrics = song.lyrics && song.lyrics.trim() !== "";
       const hasOldMemo = song.memo && song.memo.trim() !== "";
       const hasNewMemos = song.memos && song.memos.length > 0;
 
-      if (hasLyrics || hasOldMemo || hasNewMemos) { rightButtons += `<button class="btn-small btn-lyrics" onclick="openLyrics(${song.id})">가사/메모</button>`; }
-      
+      if (hasLyrics || hasOldMemo || hasNewMemos) {
+        rightButtons += `<button class="btn-small btn-lyrics" onclick="openLyrics(${song.id})">가사/메모</button>`;
+      }
       if (isAdminAuthenticated) {
         rightButtons += `<button class="icon-btn" onclick="openEditModal(${song.id})" title="수정">✏️</button>`;
         rightButtons += `<button class="icon-btn" onclick="deleteSong(${song.id})" title="삭제">❌</button>`;
@@ -1046,14 +1514,16 @@ const firebaseConfig = {
 
       let diffVal = song.difficulty || 3;
       let stars = "★".repeat(diffVal) + "☆".repeat(5 - diffVal);
-      let artImgHtml = song.albumArt ? `<img src="${song.albumArt}" class="album-art" alt="앨범아트">` : `<div class="album-art" style="display:flex; justify-content:center; align-items:center; font-size:1.2em; color:#aaa;">♪</div>`;
+      let artImgHtml = song.albumArt
+        ? `<img src="${esc(song.albumArt)}" class="album-art" alt="앨범아트">`
+        : `<div class="album-art" style="display:flex; justify-content:center; align-items:center; font-size:1.2em; color:#aaa;">♪</div>`;
 
       li.innerHTML = `
         <div class="song-info-wrapper">
           ${artImgHtml}
           <div>
-            <div class="song-title">${song.title}</div>
-            <div class="song-artist">${song.artist}</div>
+            <div class="song-title">${esc(song.title)}</div>
+            <div class="song-artist">${esc(song.artist)}</div>
             <div class="song-meta"><span class="song-difficulty">${stars}</span></div>
           </div>
         </div>
@@ -1064,19 +1534,13 @@ const firebaseConfig = {
   }
 
   function copySongInfo(event, id) {
-    if (event.target.tagName === 'BUTTON' || event.target.closest('button')) {
-      return;
-    }
+    if (event.target.tagName === 'BUTTON' || event.target.closest('button')) return;
     const song = songs.find(s => s.id === id);
-    if (song) {
-      const copyText = `${song.artist} - ${song.title}`;
-      navigator.clipboard.writeText(copyText).then(() => {
-        showToast(`🎵 '${copyText}' 복사 완료!`);
-      }).catch(err => {
-        console.error('복사 실패:', err);
-        alert("복사에 실패했습니다.");
-      });
-    }
+    if (!song) return;
+    const copyText = `${song.artist} - ${song.title}`;
+    navigator.clipboard.writeText(copyText)
+      .then(() => showToast(`🎵 '${copyText}' 복사 완료!`))
+      .catch(() => alert("복사에 실패했습니다."));
   }
 
   function showToast(message) {
@@ -1089,84 +1553,80 @@ const firebaseConfig = {
   async function addNewSong() {
     const title = document.getElementById("newTitle").value.trim();
     const artist = document.getElementById("newArtist").value.trim();
-    let genre = document.getElementById("newGenre").value.trim();
-    if (genre === "") genre = "기타";
+    let genre = document.getElementById("newGenre").value.trim() || "기타";
     const difficulty = parseInt(document.getElementById("newDifficulty").value);
     const lyrics = document.getElementById("newLyrics").value.trim();
     const memos = getMemosFromContainer("newMemoList");
     let albumArtUrl = document.getElementById("newAlbumArtUrl").value;
 
-    if (!title || !artist) { alert("곡명과 가수를 입력해주세요!"); return; }
+    if (!title || !artist) { alert("곡명과 가수를 입력해주세요."); return; }
 
     if (!albumArtUrl) {
       const urls = await fetchAlbumArtOptions(title, artist);
       albumArtUrl = urls.length > 0 ? urls[0] : "";
     }
 
-    const newSong = { id: Date.now() + Math.random(), title, artist, genre, difficulty, lyrics, memos, albumArt: albumArtUrl };
-    songs.unshift(newSong); 
-    saveToFirebase(); 
+    songs.unshift({ id: Date.now() + Math.random(), title, artist, genre, difficulty, lyrics, memos, albumArt: albumArtUrl });
+    saveToFirebase();
 
-    document.getElementById("newTitle").value = ""; document.getElementById("newArtist").value = "";
-    document.getElementById("newGenre").value = ""; document.getElementById("newLyrics").value = "";
+    document.getElementById("newTitle").value = "";
+    document.getElementById("newArtist").value = "";
+    document.getElementById("newGenre").value = "";
+    document.getElementById("newLyrics").value = "";
     document.getElementById("newAlbumArtUrl").value = "";
     document.getElementById("newArtOptionsContainer").innerHTML = `<div style="grid-column: span 3; text-align: center; color: #888; font-size: 0.85em; padding: 10px;">곡명과 가수 입력 후 버튼을 눌러보세요!</div>`;
-    document.getElementById("newMemoList").innerHTML = ""; addMemoRow("newMemoList");
+    document.getElementById("newMemoList").innerHTML = "";
+    addMemoRow("newMemoList");
   }
 
   function deleteSong(id) {
-    if (confirm("이 곡을 삭제하시겠습니까?")) {
+    if (confirm("이 곡을 삭제할까요?")) {
       songs = songs.filter(song => song.id !== id);
-      saveToFirebase(); 
+      saveToFirebase();
     }
   }
 
   async function openEditModal(id) {
     const song = songs.find(s => s.id === id);
-    if(song) {
-      document.getElementById("editSongId").value = song.id;
-      document.getElementById("editTitle").value = song.title;
-      document.getElementById("editArtist").value = song.artist;
-      document.getElementById("editGenre").value = song.genre || "기타";
-      document.getElementById("editDifficulty").value = song.difficulty || 3;
-      document.getElementById("editLyrics").value = song.lyrics || "";
-      document.getElementById("editAlbumArtUrl").value = song.albumArt || "";
-      
-      const editMemoList = document.getElementById("editMemoList");
-      editMemoList.innerHTML = ""; 
-      
-      let existingMemos = song.memos || [];
-      if (song.memo && existingMemos.length === 0) { existingMemos = [{ label: "메모", content: song.memo }]; }
-      if (existingMemos.length > 0) { existingMemos.forEach(m => addMemoRow("editMemoList", m.label, m.content)); } else { addMemoRow("editMemoList"); }
+    if (!song) return;
+    document.getElementById("editSongId").value = song.id;
+    document.getElementById("editTitle").value = song.title;
+    document.getElementById("editArtist").value = song.artist;
+    document.getElementById("editGenre").value = song.genre || "기타";
+    document.getElementById("editDifficulty").value = song.difficulty || 3;
+    document.getElementById("editLyrics").value = song.lyrics || "";
+    document.getElementById("editAlbumArtUrl").value = song.albumArt || "";
 
-      const artContainer = document.getElementById("editArtOptionsContainer");
-      if (song.albumArt) {
-        artContainer.innerHTML = `<div class="art-option selected" onclick="selectEditArtOption(this, '${song.albumArt}')"><img src="${song.albumArt}" alt="현재자켓"></div>`;
-      } else {
-        artContainer.innerHTML = `<div style="grid-column: span 3; text-align: center; color: #888; font-size: 0.85em; padding: 15px;">상단 버튼을 눌러 자켓 사진을 검색해보세요!</div>`;
-      }
+    const editMemoList = document.getElementById("editMemoList");
+    editMemoList.innerHTML = "";
+    let existingMemos = song.memos || [];
+    if (song.memo && existingMemos.length === 0) existingMemos = [{ label: "메모", content: song.memo }];
+    if (existingMemos.length > 0) existingMemos.forEach(m => addMemoRow("editMemoList", m.label, m.content));
+    else addMemoRow("editMemoList");
 
-      document.getElementById("editModal").style.display = "flex";
-    }
+    const artContainer = document.getElementById("editArtOptionsContainer");
+    artContainer.innerHTML = song.albumArt
+      ? `<div class="art-option selected" onclick="selectEditArtOption(this, '${esc(song.albumArt)}')"><img src="${esc(song.albumArt)}" alt="현재자켓"></div>`
+      : `<div style="grid-column: span 3; text-align: center; color: #888; font-size: 0.85em; padding: 15px;">상단 버튼을 눌러 자켓 사진을 검색해보세요!</div>`;
+
+    document.getElementById("editModal").style.display = "flex";
   }
 
   function saveEditedSong() {
     const id = parseFloat(document.getElementById("editSongId").value);
     const title = document.getElementById("editTitle").value.trim();
     const artist = document.getElementById("editArtist").value.trim();
-    let genre = document.getElementById("editGenre").value.trim();
-    if (genre === "") genre = "기타";
+    let genre = document.getElementById("editGenre").value.trim() || "기타";
     const difficulty = parseInt(document.getElementById("editDifficulty").value);
     const lyrics = document.getElementById("editLyrics").value.trim();
     const memos = getMemosFromContainer("editMemoList");
     const albumArtUrl = document.getElementById("editAlbumArtUrl").value;
 
-    if (!title || !artist) { alert("곡명과 가수를 입력해주세요!"); return; }
+    if (!title || !artist) { alert("곡명과 가수를 입력해주세요."); return; }
 
     const songIndex = songs.findIndex(s => s.id === id);
     if (songIndex !== -1) {
       songs[songIndex] = { id, title, artist, genre, difficulty, lyrics, memos, albumArt: albumArtUrl };
-      delete songs[songIndex].memo; 
       saveToFirebase();
       closeModal('editModal');
     }
@@ -1174,50 +1634,63 @@ const firebaseConfig = {
 
   function openLyrics(id) {
     const song = songs.find(s => s.id === id);
-    if(song) {
-      document.getElementById("lyricsModalTitle").textContent = `${song.title} - ${song.artist}`;
-      const memoEl = document.getElementById("lyricsModalMemo"); memoEl.innerHTML = ""; 
+    if (!song) return;
+    document.getElementById("lyricsModalTitle").textContent = `${song.title} - ${song.artist}`;
+    const memoEl = document.getElementById("lyricsModalMemo");
+    memoEl.innerHTML = "";
 
-      let displayMemos = song.memos || [];
-      if (song.memo && displayMemos.length === 0) { displayMemos = [{ label: "메모", content: song.memo }]; }
+    let displayMemos = song.memos || [];
+    if (song.memo && displayMemos.length === 0) displayMemos = [{ label: "메모", content: song.memo }];
 
-      if (displayMemos.length > 0) {
-        displayMemos.forEach(m => {
-          let safeContent = m.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-          let linkedContent = safeContent.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:var(--primary); text-decoration:underline;">$1</a>');
-          const memoDiv = document.createElement("div");
-          memoDiv.className = "modal-memo-item";
-          memoDiv.innerHTML = `<strong>💡 ${m.label}:</strong> ${linkedContent}`;
-          memoEl.appendChild(memoDiv);
-        });
-        memoEl.style.display = "block";
-      } else { memoEl.style.display = "none"; }
-
-      document.getElementById("lyricsModalContent").textContent = song.lyrics || "(가사가 없습니다)";
-      document.getElementById("lyricsModal").style.display = "flex";
+    if (displayMemos.length > 0) {
+      displayMemos.forEach(m => {
+        let safeContent = esc(m.content);
+        let linkedContent = safeContent.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:var(--primary); text-decoration:underline;">$1</a>');
+        const memoDiv = document.createElement("div");
+        memoDiv.className = "modal-memo-item";
+        memoDiv.innerHTML = `<strong>💡 ${esc(m.label)}:</strong> ${linkedContent}`;
+        memoEl.appendChild(memoDiv);
+      });
+      memoEl.style.display = "block";
+    } else {
+      memoEl.style.display = "none";
     }
+
+    document.getElementById("lyricsModalContent").textContent = song.lyrics || "(가사가 없습니다)";
+    document.getElementById("lyricsModal").style.display = "flex";
   }
 
   function closeModal(modalId, event) {
-    if(!event || event.target.id === modalId) { document.getElementById(modalId).style.display = "none"; }
+    if (!event || event.target.id === modalId) {
+      document.getElementById(modalId).style.display = "none";
+      if (modalId === 'upboModal') currentViewerId = null;
+      if (modalId === 'surveyModal') currentSurveyId = null;
+      if (modalId === 'responseModal') currentResponseSurveyId = null;
+    }
   }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    ['lyricsModal', 'editModal', 'upboModal', 'surveyModal', 'responseModal'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el.style.display === 'flex') closeModal(id);
+    });
+  });
 
   document.getElementById("genreContainer").addEventListener("click", (e) => {
     if (e.target.tagName === "BUTTON") {
-      document.querySelectorAll(".badge").forEach(btn => btn.classList.remove("active"));
+      document.querySelectorAll("#genreContainer .badge").forEach(btn => btn.classList.remove("active"));
       e.target.classList.add("active");
       currentGenre = e.target.getAttribute("data-genre");
-      renderSongs(); 
+      renderSongs();
     }
   });
 
   document.getElementById("searchInput").addEventListener("input", renderSongs);
-
   document.getElementById("sortSelect").addEventListener("change", (e) => {
     currentSort = e.target.value;
     renderSongs();
   });
-
 </script>
 </body>
 </html>
