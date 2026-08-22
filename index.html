@@ -23,7 +23,7 @@
          배너 높이   152 / 549 (가로세로비 549:152)
          프로필 지름 128 / 549 = 23.32%  (흰 링 6px 포함)
          배너 아래로 나온 양 57 / 549 = 10.35%
-         카드 위 여백  61 / 549 = 11.1%                      */
+         카드 위 여백  61 / 549 = 11.1%                     */
     --card-radius: 20px;
     --banner-radius: 0px;
     /* 카드(=배너) 실제 폭. %는 부모 폭을 기준으로 계산되므로
@@ -719,6 +719,29 @@
   </div>
 </div>
 
+<!-- 설문 수정용 모달 -->
+<div class="modal-overlay" id="editSurveyModal" onclick="closeModal('editSurveyModal', event)">
+  <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 450px;">
+    <h3 class="modal-title">설문 수정</h3>
+    <input type="hidden" id="editSurveyId">
+    
+    <div class="form-group" style="overflow-y:auto;">
+      <input type="text" id="editSurveyTitle" placeholder="설문 제목 (예: 방송 일주일간 느낀 점)">
+      <input type="text" id="editSurveyDesc" placeholder="안내 문구 (선택)">
+
+      <div class="lyrics-header" style="margin-top: 10px; margin-bottom: 6px;">
+        <span>질문 목록</span>
+        <button type="button" class="btn-small" onclick="addEditQuestionRow()">➕ 질문 추가</button>
+      </div>
+      
+      <div id="editQuestionList" class="memo-list"></div>
+
+      <button class="action-btn" onclick="saveEditedSurvey()" style="margin-top: 15px;">수정 완료</button>
+      <button class="btn-small" onclick="closeModal('editSurveyModal')" style="padding: 10px;">취소</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // ==========================================
   // Firebase 설정
@@ -1072,6 +1095,77 @@
     db.ref('streamerData/responses/' + sid).remove();
   }
 
+  // ===== 설문 수정 기능 =====
+  function openEditSurveyModal(sid) {
+    const s = surveys.find(x => x.id === sid);
+    if (!s) return;
+
+    document.getElementById('editSurveyId').value = s.id;
+    document.getElementById('editSurveyTitle').value = s.title;
+    document.getElementById('editSurveyDesc').value = s.desc || "";
+
+    const qList = document.getElementById('editQuestionList');
+    qList.innerHTML = "";
+    
+    // 기존 질문들 불러오기
+    if (s.questions && s.questions.length > 0) {
+      s.questions.forEach(q => addEditQuestionRow(q.text, q.id));
+    } else {
+      addEditQuestionRow();
+    }
+
+    document.getElementById('editSurveyModal').style.display = 'flex';
+  }
+
+  function addEditQuestionRow(text = "", qid = "") {
+    const container = document.getElementById('editQuestionList');
+    const row = document.createElement("div");
+    row.className = "form-row memo-row q-row";
+    row.innerHTML = `
+      <input type="hidden" class="q-id" value="${esc(qid)}">
+      <input type="text" class="q-text" placeholder="질문 내용" value="${esc(text)}">
+      <button type="button" class="btn-small" onclick="this.parentElement.remove()">❌</button>
+    `;
+    container.appendChild(row);
+  }
+
+  function saveEditedSurvey() {
+    const sid = document.getElementById('editSurveyId').value;
+    const title = document.getElementById('editSurveyTitle').value.trim();
+    const desc = document.getElementById('editSurveyDesc').value.trim();
+    
+    if (!title) { alert("설문 제목을 입력해주세요."); return; }
+
+    const questions = [];
+    document.querySelectorAll('#editQuestionList .q-row').forEach((row, i) => {
+      const text = row.querySelector('.q-text').value.trim();
+      let qid = row.querySelector('.q-id').value;
+      
+      if (text) {
+        // 기존에 없던 새로 추가된 질문인 경우 새 고유 ID 발급
+        if (!qid) qid = "q" + Date.now() + Math.floor(Math.random() * 1000) + i;
+        questions.push({ id: qid, text });
+      }
+    });
+
+    if (questions.length === 0) { alert("질문을 최소 1개 이상 입력해주세요."); return; }
+
+    const surveyIndex = surveys.findIndex(s => s.id === sid);
+    if (surveyIndex !== -1) {
+      surveys[surveyIndex].title = title;
+      surveys[surveyIndex].desc = desc;
+      surveys[surveyIndex].questions = questions;
+
+      saveSurveysToFirebase();
+      closeModal('editSurveyModal');
+      
+      // 화면 갱신
+      renderAdminSurveys();
+      renderSurveys(); 
+      showToast("설문이 성공적으로 수정되었습니다.");
+    }
+  }
+
   function renderAdminSurveys() {
     const box = document.getElementById('adminSurveyList');
     if (!box) return;
@@ -1086,6 +1180,7 @@
         <span class="t">${esc(s.title)}</span>
         <button class="cnt-pill" onclick="openResponses('${esc(s.id)}')">답변 ${n}</button>
         <button class="btn-small" onclick="toggleSurveyOpen('${esc(s.id)}')">${s.isOpen ? '종료' : '재개'}</button>
+        <button class="icon-btn" onclick="openEditSurveyModal('${esc(s.id)}')" title="수정">✏️</button>
         <button class="icon-btn" onclick="deleteSurvey('${esc(s.id)}')" title="삭제">❌</button>
       </div>`;
     }).join('');
@@ -1933,7 +2028,7 @@
 
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
-    ['lyricsModal', 'editModal', 'upboModal', 'surveyModal', 'responseModal'].forEach(id => {
+    ['lyricsModal', 'editModal', 'upboModal', 'surveyModal', 'responseModal', 'editSurveyModal'].forEach(id => {
       const el = document.getElementById(id);
       if (el.style.display === 'flex') closeModal(id);
     });
