@@ -479,7 +479,7 @@
 
       <div class="upbo-summary">
         <span>시청자 <b id="viewerCount">0</b>명</span>
-        <span>누적 업보 <b id="upboTotal">0</b>회</span>
+        <span>남은 업보 <b id="upboTotal">0</b>회</span>
       </div>
 
       <div class="viewer-grid" id="viewerGrid"></div>
@@ -1220,7 +1220,7 @@
       <div>
         <div class="modal-title">${esc(v.nickname)}</div>
         ${v.platformId ? `<div style="font-size:0.8em; color:#aaa;">${esc(v.platformId)}</div>` : ''}
-        <div style="font-size:0.85em; color:#888; margin-top:2px;">누적 업보 <b style="color:var(--primary);">${viewerTotal(v)}</b>회</div>
+        <div style="font-size:0.85em; color:#888; margin-top:2px;">남은 업보 <b style="color:var(--primary);">${viewerTotal(v)}</b>회</div>
       </div>`;
 
     renderUpboRows(v);
